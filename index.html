@@ -4,9 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0d14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
 <title>MyMind</title>
 <style>
-:root{--bg:#0b0d14;--card:#141826;--text:#d9d4c7;--dim:#8a8778;--accent:#c9a46a;--ok:#7aa37a}
+:root{--bg:#0b0d14;--card:#141826;--text:#d9d4c7;--dim:#8a8778;--accent:#c9a46a;--ok:#7aa37a;--line:#2a3047}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:18px/1.5 -apple-system,system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center}
 main{width:100%;max-width:480px;padding:24px 16px calc(24px + env(safe-area-inset-bottom))}
@@ -15,17 +20,29 @@ h2{font-size:20px;margin:0 0 12px;font-weight:600}
 p{margin:0 0 14px}.dim{color:var(--dim);font-size:15px}
 .card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px}
 .big{font-size:56px;font-weight:300;letter-spacing:1px;line-height:1.1}
-button{width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:#1a1408;font-size:18px;font-weight:600;margin-top:8px;cursor:pointer}
-button.ghost{background:transparent;color:var(--dim);border:1px solid #2a3047}
+button{width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:#1a1408;font-size:18px;font-weight:600;margin-top:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+button.quiet{background:#1b2135;color:var(--text)}
 label{display:block;font-size:15px;color:var(--dim);margin:12px 0 4px}
-input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3047;background:#0e111c;color:var(--text);font:inherit}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0e111c;color:var(--text);font:inherit}
 textarea{min-height:140px;resize:vertical}
 .hide{display:none!important}
-.breath{width:160px;height:160px;border-radius:50%;margin:24px auto;background:radial-gradient(#c9a46a55,#c9a46a11);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;text-align:center;transition:transform 4s ease-in-out}
+.breath{width:160px;height:160px;border-radius:50%;margin:24px auto;background:radial-gradient(#c9a46a55,#c9a46a11);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;text-align:center;transition:transform 4s ease-in-out;padding:12px}
 .dots{display:flex;gap:6px;margin-bottom:16px}.dots i{flex:1;height:4px;border-radius:2px;background:#232a40}.dots i.on{background:var(--accent)}
-#dark{position:fixed;inset:0;background:#000;color:#2b2b2b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:9}
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:10;overflow-y:auto;display:flex;justify-content:center}
+.sheet>div{width:100%;max-width:480px;padding:32px 16px calc(32px + env(safe-area-inset-bottom))}
+#dark{position:fixed;inset:0;background:#000;color:#2b2b2b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:9;padding:16px}
 #dark .t{font-size:40px;font-weight:200}
+#dark button{color:#333;border-color:#1b1b1b;max-width:220px}
 .row{display:flex;gap:8px}.row>*{flex:1}
+.seg{display:flex;gap:8px;margin-top:8px}
+.seg button{margin-top:0;padding:12px 8px;font-size:15px;font-weight:500}
+.seg button.on{background:#262c42;color:var(--text);border-color:var(--accent)}
+#sky{width:100%;aspect-ratio:440/150;height:auto;display:block;border-radius:12px;background:linear-gradient(#070910,#10152a)}
+.check{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.check input{width:22px;height:22px;accent-color:var(--accent)}
+.check span{font-size:15px;color:var(--dim)}
+small.note{display:block;color:#5e5c50;font-size:13px;margin-top:6px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -40,6 +57,12 @@ textarea{min-height:140px;resize:vertical}
     <p class="dim" id="countdown"></p>
     <p class="dim" id="planinfo"></p>
     <button id="startWind">Start wind-down</button>
+    <button class="quiet" id="tempted">I'm tempted to keep scrolling</button>
+  </div>
+  <div class="card">
+    <h2>Your night sky</h2>
+    <svg id="sky" viewBox="0 0 440 150" preserveAspectRatio="xMidYMid slice"></svg>
+    <p class="dim" id="skyInfo" style="margin:10px 0 0"></p>
   </div>
   <div class="card">
     <h2>Morning check-in</h2>
@@ -47,6 +70,7 @@ textarea{min-height:140px;resize:vertical}
     <input type="time" id="slept">
     <button class="ghost" id="saveLog">Save</button>
     <p class="dim" id="logInfo" style="margin-top:12px"></p>
+    <button class="ghost" id="showChart">This week, honestly</button>
   </div>
   <button class="ghost" id="editPlan">Edit my plan</button>
   <p class="dim" style="margin-top:16px">Not medical advice. If sleep trouble lasts for weeks or you feel low or anxious, talk to a parent or doctor.</p>
@@ -62,6 +86,7 @@ textarea{min-height:140px;resize:vertical}
     <label>Wake-up time (keep it the same every day)</label><input type="time" id="wake" value="09:00">
     <label>Shift earlier by</label>
     <select id="step"><option value="15">15 min per night (gentle)</option><option value="30" selected>30 min per night</option><option value="45">45 min per night (hard)</option></select>
+    <div class="check"><input type="checkbox" id="alarmOn" checked><span>Wake alarm with get-up task (only works while this page stays open — set a normal backup alarm too)</span></div>
     <button id="savePlan">Start my plan</button>
   </div>
 </section>
@@ -73,10 +98,61 @@ textarea{min-height:140px;resize:vertical}
 </section>
 </main>
 
+<!-- TEMPTED / PANIC -->
+<div id="panic" class="sheet hide"><div>
+  <h1 id="panicTime">--:--</h1>
+  <p id="panicMath" class="dim"></p>
+  <div class="breath" id="panicBr">The feed has no end.<br>Tonight does.</div>
+  <p class="dim" style="text-align:center">Ten slow breaths. In through the nose, out long. The urge peaks and passes in about two minutes.</p>
+  <button id="panicBack">Put the phone down · lights out</button>
+  <button class="ghost" id="panicWind">Take me to the wind-down instead</button>
+</div></div>
+
+<!-- CAN'T SLEEP / WHY AM I AWAKE -->
+<div id="cant" class="sheet hide"><div>
+  <div id="cantPick">
+    <h1>Still awake. What's up?</h1>
+    <p class="dim">Pick what fits. No wrong answer.</p>
+    <button class="quiet" data-why="mind">My mind is racing</button>
+    <button class="quiet" data-why="body">My body won't settle</button>
+    <button class="quiet" data-why="awake">I'm just not sleepy</button>
+    <button class="quiet" data-why="phone">I want my phone</button>
+    <button class="ghost" id="cantBack0">Back to the dark</button>
+  </div>
+  <div id="cantAnswer" class="hide">
+    <h1 id="cantTitle"></h1>
+    <p id="cantBody"></p>
+    <div id="cantExtra"></div>
+    <button id="cantBack">Back to the dark</button>
+  </div>
+</div></div>
+
+<!-- CHART -->
+<div id="chart" class="sheet hide"><div>
+  <h1>This week, honestly</h1>
+  <p class="dim">Dots are when you actually fell asleep. The line is the plan. No shame — the chart just tells the truth.</p>
+  <div class="card"><svg id="chartSvg" viewBox="0 0 440 260" style="width:100%"></svg></div>
+  <p class="dim" id="chartNote"></p>
+  <button class="ghost" id="chartBack">Close</button>
+</div></div>
+
+<!-- DARK / LIGHTS OUT -->
 <div id="dark" class="hide">
   <div class="t" id="darkClock">--:--</div>
-  <p style="margin-top:24px;color:#333">Phone face-down. Goodnight.</p>
-  <button class="ghost" id="wake2" style="max-width:200px;margin-top:40px;color:#333;border-color:#222">I can't sleep</button>
+  <p style="margin-top:16px;color:#333">Phone face-down. Goodnight.</p>
+  <div class="seg" style="max-width:280px">
+    <button class="ghost" data-snd="rain">Rain</button>
+    <button class="ghost" data-snd="deep">Deep</button>
+    <button class="ghost" data-snd="off">Silent</button>
+  </div>
+  <p id="sndInfo" style="color:#2b2b2b;font-size:13px;margin:8px 0 0">Sound fades out over 20 min.</p>
+  <button class="ghost" id="cantBtn" style="margin-top:36px">I can't sleep</button>
+  <button class="ghost" id="temptedDark" style="margin-top:8px">I want my phone</button>
+  <div id="alarmBox" class="hide" style="margin-top:28px">
+    <p style="color:#9c7f4e;font-size:22px">Morning. Time to get up.</p>
+    <p style="color:#555;font-size:14px">Stand up and open the curtains, then type <b>UP</b> to stop the alarm. Daylight now is what moves your clock.</p>
+    <input id="alarmInput" autocomplete="off" style="max-width:120px;text-align:center;background:#0a0a0a;border-color:#222;color:#888">
+  </div>
 </div>
 
 <script>
@@ -87,14 +163,18 @@ const toMin=t=>{const[a,b]=t.split(':').map(Number);return a*60+b};
 const fmt=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 const today=()=>new Date().toISOString().slice(0,10);
 const dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
 // minutes the bedtime sits "after the previous evening 12:00" so 05:30 > 00:30 > 23:00 ordering works
 const rel=m=>m<12*60?m+1440:m;
-function tonight(){
-  const d=Math.max(0,dayDiff(S.start,today()));
+function targetFor(nightDate){
+  const d=Math.max(0,dayDiff(S.start,nightDate));
   const c=rel(toMin(S.cur)),g=rel(toMin(S.goal));
   return Math.max(g,c-d*S.step);
 }
+const tonight=()=>targetFor(today());
 function show(id){['home','setup','wind'].forEach(x=>$(x).classList.toggle('hide',x!==id))}
+function sheet(id,on){$(id).classList.toggle('hide',!on)}
+
 function renderHome(){
   show('home');
   const t=tonight(),g=rel(toMin(S.goal));
@@ -103,6 +183,7 @@ function renderHome(){
   $('planinfo').textContent=t<=g?'You\'re at your goal bedtime. Keep it steady.':`Goal ${fmt(g)} · about ${Math.max(left,0)} more nights. Wake at ${S.wake} every day, then get daylight.`;
   const last=S.log.slice(-5).reverse().map(l=>l.date.slice(5)+' → '+l.slept).join('  ·  ');
   $('logInfo').textContent=last?'Recent: '+last:'';
+  renderSky();
   tick();
 }
 function tick(){
@@ -112,12 +193,58 @@ function tick(){
   $('countdown').textContent=diff>0?`Wind-down should start in ${Math.max(diff-30,0)} min (30 min before bed).`:`Bedtime was ${-diff} min ago. Start now — an imperfect night still counts.`;
 }
 setInterval(tick,30000);
+
+// ---- night sky: one star per logged night; bright if on time. Never resets. ----
+function entryOnTime(l){
+  if(typeof l.onTime==='boolean')return l.onTime;
+  // legacy entries: judge against the plan for that night (log date = morning after)
+  return rel(toMin(l.slept))<=targetFor(addDays(l.date,-1))+30;
+}
+function hashStr(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
+  h^=h>>>15;h=Math.imul(h,2246822519)>>>0;h^=h>>>13;return h>>>0}
+function renderSky(){
+  const svg=$('sky');let el='';
+  const n=S.log.length,bright=S.log.filter(entryOnTime).length;
+  S.log.forEach(l=>{
+    const h=hashStr(l.date),x=20+(h%400),y=14+((h>>8)%112),on=entryOnTime(l);
+    el+=`<circle cx="${x}" cy="${y}" r="${on?2.4:1.4}" fill="${on?'#e8d9ae':'#5a5f72'}" opacity="${on?.95:.7}"/>`;
+    if(on)el+=`<circle cx="${x}" cy="${y}" r="5.5" fill="#e8d9ae" opacity="0.12"/>`;
+  });
+  // the moon fills as bright nights accumulate (full at 21)
+  const ph=Math.min(bright/21,1),r=16,cx=395,cy=34;
+  el+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#20263b"/>`;
+  if(ph>0){el+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="#d8cba0" opacity="${0.25+ph*0.75}"/>`;
+    if(ph<1)el+=`<circle cx="${cx-r*2*(1-ph)*0.8}" cy="${cy-3}" r="${r}" fill="#10152a"/>`}
+  svg.innerHTML=el;
+  $('skyInfo').textContent=n===0?'Every night you log becomes a star. On-time nights shine. Nothing here ever disappears.':`${n} night${n>1?'s':''} in your sky · ${bright} on time. A rough night never removes a star.`;
+}
+
+// ---- weekly chart ----
+function renderChart(){
+  const W=440,H=260,L=46,R=12,T=14,B=30,days=14;
+  const end=today(),lo=21*60,hi=rel(7*60); // 21:00 .. 07:00 next day
+  const X=i=>L+(W-L-R)*i/(days-1), Y=m=>T+(H-T-B)*(Math.min(Math.max(rel(m),lo),hi)-lo)/(hi-lo);
+  let el='';
+  for(const hh of [22,24,26,28,30]){const y=T+(H-T-B)*(hh*60-lo)/(hi-lo);
+    el+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#20263b"/><text x="${L-6}" y="${y+4}" fill="#8a8778" font-size="11" text-anchor="end">${fmt(hh*60)}</text>`}
+  let line='';
+  for(let i=0;i<days;i++){const nd=addDays(end,i-(days-1));line+=(i?'L':'M')+X(i)+' '+Y(targetFor(nd))+' '}
+  el+=`<path d="${line}" stroke="#c9a46a" stroke-width="1.5" fill="none" stroke-dasharray="4 3" opacity="0.8"/>`;
+  let logged=0;
+  S.log.forEach(l=>{const nd=addDays(l.date,-1),i=dayDiff(addDays(end,-(days-1)),nd);
+    if(i<0||i>days-1)return;logged++;const on=entryOnTime(l);
+    el+=`<circle cx="${X(i)}" cy="${Y(toMin(l.slept))}" r="5" fill="${on?'#7aa37a':'#b3765a'}"/>`});
+  for(const i of [0,7,13]){el+=`<text x="${X(i)}" y="${H-10}" fill="#8a8778" font-size="11" text-anchor="middle">${addDays(end,i-(days-1)).slice(5)}</text>`}
+  $('chartSvg').innerHTML=el;
+  $('chartNote').textContent=logged?`${logged} logged night${logged>1?'s':''} in the last two weeks. Green = on time (within 30 min). The dashed line is where the plan was.`:'No logged nights in the last two weeks yet. Log each morning and the truth shows up here.';
+}
+
 // ---- wind-down ----
 const steps=[
  ()=>`<h2>1 · Phone away from bed</h2><p>Plug your phone in across the room (or outside the bedroom). Turn on Do Not Disturb. If you need an alarm, set it now.</p><p>Close every feed. Anything still open is tomorrow's problem.</p><button data-next>Done</button>`,
  ()=>`<h2>2 · Empty your head</h2><p class="dim">Write anything on your mind: worries, to-dos, ideas. It stays on this device.</p><textarea id="dump" placeholder="Tomorrow I need to…"></textarea><button data-next>Done, it's out of my head</button>`,
  ()=>`<h2>3 · Slow breathing</h2><p class="dim">In 4 · hold 7 · out 8. Four rounds.</p><div class="breath" id="br">Get ready</div><button id="brStart">Start</button>`,
- ()=>`<h2>4 · Relax your body</h2><p id="relax">Lie down. Let your eyes close. Tap Next for each part.</p><button id="relNext">Start</button>`,
+ ()=>`<h2>4 · Relax your body</h2><p id="relax">Lie down. Let your eyes close between parts.</p><button id="relVoice">Guide me with a quiet voice</button><button class="ghost" id="relNext">I'll tap through silently</button>`,
  ()=>`<h2>5 · Lights out</h2><p>The screen will go black with a faint clock. Put it face-down. If you're still awake after ~20 minutes, tap "I can't sleep": get up, dim light, something boring, back when sleepy.</p><button id="goDark">Lights out</button>`
 ];
 let si=0;
@@ -140,23 +267,135 @@ function breathe(){
     setTimeout(()=>{p++;if(p>2){p=0;round++}run()},sec*1000);
   })();
 }
+const relaxParts=['Forehead: let it go smooth.','Jaw: unclench, let your teeth part.','Shoulders: drop them away from your ears.','Hands: let them go heavy and open.','Stomach: soft, breathing slowly.','Legs: heavy, sinking into the bed.','Feet: warm and loose.','Now just notice your breathing. Nothing else to do.'];
+let voiceTimer;
 function relax(){
-  const parts=['Forehead: let it go smooth.','Jaw: unclench, let your teeth part.','Shoulders: drop them away from your ears.','Hands: let them go heavy and open.','Stomach: soft, breathing slowly.','Legs: heavy, sinking into the bed.','Feet: warm and loose.','Now just notice your breathing. Nothing else to do.'];
-  let i=-1;$('relNext').onclick=()=>{i++;if(i>=parts.length){si++;renderStep();return}$('relax').textContent=parts[i];$('relNext').textContent=i===parts.length-1?'I\'m ready':'Next'};
+  let i=-1;
+  const advance=()=>{i++;if(i>=relaxParts.length){si++;renderStep();return true}
+    $('relax').textContent=relaxParts[i];$('relNext').textContent=i===relaxParts.length-1?'I\'m ready':'Next';return false};
+  $('relNext').onclick=()=>{stopVoice();advance()};
+  $('relVoice').onclick=()=>{
+    $('relVoice').classList.add('hide');
+    const speakNext=()=>{if(advance())return;
+      try{const u=new SpeechSynthesisUtterance($('relax').textContent);u.rate=0.82;u.pitch=0.9;u.volume=0.9;speechSynthesis.speak(u)}catch(e){}
+      voiceTimer=setTimeout(speakNext,i===relaxParts.length-1?14000:16000)};
+    speakNext();
+  };
 }
-let clk;
+function stopVoice(){clearTimeout(voiceTimer);try{speechSynthesis.cancel()}catch(e){}}
+
+// ---- sounds (generated, nothing downloaded) ----
+let AC,sndNodes=null,sndStopT;
+const ac=()=>AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+function stopSound(){clearTimeout(sndStopT);if(sndNodes){try{sndNodes.src.stop()}catch(e){}sndNodes=null}}
+function startSound(kind){
+  stopSound();if(kind==='off'){$('sndInfo').textContent='Silent.';return}
+  const ctx=ac();ctx.resume&&ctx.resume();
+  const len=ctx.sampleRate*4,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+  let lastv=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;
+    if(kind==='deep'){lastv=(lastv+0.02*w)/1.02;d[i]=lastv*3.2}else d[i]=w*0.6}
+  const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;let node=src;
+  if(kind==='rain'){const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=1100;f.Q.value=0.5;src.connect(f);node=f}
+  const g=ctx.createGain();node.connect(g);g.connect(ctx.destination);
+  const now=ctx.currentTime,mins=20,lvl=kind==='deep'?0.22:0.13;
+  g.gain.setValueAtTime(0.0001,now);
+  g.gain.exponentialRampToValueAtTime(lvl,now+4);
+  g.gain.setValueAtTime(lvl,now+60);
+  g.gain.exponentialRampToValueAtTime(0.0001,now+mins*60);
+  src.start();src.stop(now+mins*60+2);
+  sndNodes={src,g};sndStopT=setTimeout(()=>sndNodes=null,mins*60*1000+2500);
+  $('sndInfo').textContent=(kind==='rain'?'Rain':'Deep noise')+' · fades out over 20 min.';
+}
+document.querySelectorAll('[data-snd]').forEach(b=>b.onclick=()=>startSound(b.dataset.snd));
+
+// ---- dark screen + wake alarm ----
+let clk,alarmNodes=null,alarmFired=false;
 function goDark(){
-  $('dark').classList.remove('hide');
-  const u=()=>{const n=new Date();$('darkClock').textContent=fmt(n.getHours()*60+n.getMinutes())};u();clk=setInterval(u,20000);
-  try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}
+  sheet('panic',false);sheet('cant',false);clearInterval(clk);
+  $('dark').classList.remove('hide');alarmFired=false;$('alarmBox').classList.add('hide');
+  const u=()=>{const n=new Date();$('darkClock').textContent=fmt(n.getHours()*60+n.getMinutes());checkAlarm(n)};
+  u();clk=setInterval(u,20000);
+  try{const p=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();p&&p.catch(()=>{})}catch(e){}
 }
-$('wake2').onclick=()=>{$('dark').classList.add('hide');clearInterval(clk);alert('Get up. Dim light. Do something boring (read paper, stretch). No phone feeds. Come back when sleepy.')};
+function leaveDark(){$('dark').classList.add('hide');clearInterval(clk);stopSound();stopAlarmSound()}
+function checkAlarm(n){
+  if(!S||!S.alarm||alarmFired)return;
+  const now=n.getHours()*60+n.getMinutes(),w=toMin(S.wake);
+  if(now>=w&&now<w+30){alarmFired=true;ringAlarm()}
+}
+function ringAlarm(){
+  $('alarmBox').classList.remove('hide');$('alarmInput').value='';
+  try{
+    const ctx=ac();ctx.resume&&ctx.resume();
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=523;
+    o.connect(g);g.connect(ctx.destination);
+    const now=ctx.currentTime;g.gain.setValueAtTime(0.0001,now);
+    g.gain.exponentialRampToValueAtTime(0.3,now+120); // rises gently over 2 min
+    const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=0.5;lg.gain.value=0.5;
+    lfo.connect(lg);lg.connect(g.gain);lfo.start();
+    o.start();alarmNodes={o,lfo};
+  }catch(e){}
+}
+function stopAlarmSound(){if(alarmNodes){try{alarmNodes.o.stop();alarmNodes.lfo.stop()}catch(e){}alarmNodes=null}}
+$('alarmInput').oninput=e=>{
+  if(e.target.value.trim().toUpperCase()==='UP'){
+    stopAlarmSound();leaveDark();
+    try{const p=document.exitFullscreen&&document.exitFullscreen();p&&p.catch(()=>{})}catch(e2){}
+    renderHome();
+  }
+};
+
+// ---- tempted / panic ----
+function openPanic(){
+  const n=new Date(),now=n.getHours()*60+n.getMinutes();
+  $('panicTime').textContent=fmt(now);
+  let sleepIn=toMin(S.wake)+1440-rel(now>12*60?now:now+1440);sleepIn=((sleepIn%1440)+1440)%1440;
+  $('panicMath').textContent=`If you're asleep in 20 minutes, you get about ${Math.floor(Math.max(sleepIn-20,0)/60)}h ${Math.max(sleepIn-20,0)%60}m before your ${S.wake} wake-up. Every scroll from now on is traded for that.`;
+  sheet('panic',true);panicBreath();
+}
+let panicT;
+function panicBreath(){
+  const el=$('panicBr');let on=false;clearInterval(panicT);
+  const flip=()=>{on=!on;el.textContent=on?'Breathe in…':'…and let it go';el.style.transition='transform 4s ease-in-out';el.style.transform=on?'scale(1.3)':'scale(1)'};
+  flip();panicT=setInterval(flip,4000);
+}
+function closePanic(){clearInterval(panicT);sheet('panic',false)}
+$('tempted').onclick=openPanic;
+$('temptedDark').onclick=openPanic;
+$('panicBack').onclick=()=>{closePanic();goDark()};
+$('panicWind').onclick=()=>{closePanic();si=0;renderStep()};
+
+// ---- can't sleep / why am I awake ----
+const whys={
+ mind:{t:'Mind racing',b:'Thoughts at night feel urgent but they\'re just loud. Get them out of your head and onto the page — then they can wait until morning.',
+   x:`<textarea id="nightDump" placeholder="What's circling?"></textarea><small class="note">Stays on this device, like everything else.</small>`},
+ body:{t:'Body won\'t settle',b:'Do one slow pass: unclench your jaw, drop your shoulders, let your hands and legs go heavy. Then breathe out longer than you breathe in, ten times.',x:''},
+ awake:{t:'Not sleepy is fine',b:'Don\'t lie there fighting it — that teaches your brain the bed is for worrying. Get up, keep lights dim, do something genuinely boring (paper book, stretching). Come back the moment you feel sleepy. No phone feeds — that\'s the trap that got us here.',x:''},
+ phone:{t:'The phone can wait',b:'That pull is real — apps are built by teams whose whole job is to keep you on them at 1 a.m. Nothing in the feed is better tomorrow-you\'s sleep. Leave it charging across the room.',x:''}
+};
+document.querySelectorAll('[data-why]').forEach(b=>b.onclick=()=>{
+  const w=whys[b.dataset.why];
+  $('cantTitle').textContent=w.t;$('cantBody').textContent=w.b;$('cantExtra').innerHTML=w.x;
+  $('cantPick').classList.add('hide');$('cantAnswer').classList.remove('hide');
+});
+function openCant(){$('cantPick').classList.remove('hide');$('cantAnswer').classList.add('hide');sheet('cant',true)}
+$('cantBtn').onclick=openCant;
+$('cantBack').onclick=()=>{sheet('cant',false);goDark()};
+$('cantBack0').onclick=()=>{sheet('cant',false);goDark()};
+
 // ---- wiring ----
 $('startWind').onclick=()=>{si=0;renderStep()};
-$('editPlan').onclick=()=>{if(S){$('cur').value=S.cur;$('goal').value=S.goal;$('wake').value=S.wake;$('step').value=S.step}show('setup')};
-$('savePlan').onclick=()=>{S={cur:$('cur').value,goal:$('goal').value,wake:$('wake').value,step:+$('step').value,start:today(),log:(S&&S.log)||[]};save();renderHome()};
-$('saveLog').onclick=()=>{const v=$('slept').value;if(!v||!S)return;S.log.push({date:today(),slept:v});save();$('slept').value='';renderHome()};
+$('editPlan').onclick=()=>{if(S){$('cur').value=S.cur;$('goal').value=S.goal;$('wake').value=S.wake;$('step').value=S.step;$('alarmOn').checked=!!S.alarm}show('setup')};
+$('savePlan').onclick=()=>{S={cur:$('cur').value,goal:$('goal').value,wake:$('wake').value,step:+$('step').value,alarm:$('alarmOn').checked,start:today(),log:(S&&S.log)||[]};save();renderHome()};
+$('saveLog').onclick=()=>{const v=$('slept').value;if(!v||!S)return;
+  const onTime=rel(toMin(v))<=targetFor(addDays(today(),-1))+30;
+  S.log.push({date:today(),slept:v,onTime});save();$('slept').value='';renderHome()};
+$('showChart').onclick=()=>{renderChart();sheet('chart',true)};
+$('chartBack').onclick=()=>sheet('chart',false);
 if(S&&S.cur)renderHome();else show('setup');
+
+// ---- PWA ----
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
