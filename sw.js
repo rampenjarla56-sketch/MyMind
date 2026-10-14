@@ -1,5 +1,5 @@
 // MyMind service worker: offline-first for the app shell.
-const CACHE = 'mymind-v1';
+const CACHE = 'mymind-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-180.png'];
 
 self.addEventListener('install', e => {
@@ -19,16 +19,20 @@ self.addEventListener('fetch', e => {
   if (e.request.mode === 'navigate') {
     e.respondWith(
       fetch(e.request).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put('./index.html', copy));
+        if (r.ok) {
+          const copy = r.clone();
+          caches.open(CACHE).then(c => c.put('./index.html', copy));
+        }
         return r;
       }).catch(() => caches.match('./index.html'))
     );
     return;
   }
   e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
-    const copy = r.clone();
-    caches.open(CACHE).then(c => c.put(e.request, copy));
+    if (r.ok) {
+      const copy = r.clone();
+      caches.open(CACHE).then(c => c.put(e.request, copy));
+    }
     return r;
   })));
 });
