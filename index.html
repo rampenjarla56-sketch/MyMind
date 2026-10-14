@@ -168,28 +168,36 @@
 <!-- @night -->
 <!-- Night screens: Agent 04 owns everything between these markers (and src/night.js). -->
 
-<!-- WIND DOWN -->
-<div id="wind" class="sheet hide" role="dialog" aria-label="Wind-down"><div>
-  <div class="dots" id="dots" aria-hidden="true"></div>
-  <div class="card" id="stepBox"></div>
+<!-- WIND DOWN (timed, 30 min, resumable) -->
+<div id="wind" class="sheet hide" role="dialog" aria-labelledby="windTitle"><div>
+  <div class="wind-head">
+    <div class="dots" id="dots" aria-hidden="true"></div>
+    <p class="wind-meta"><span id="windStep" class="faint"></span><span id="windLeft" class="faint" aria-live="polite"></span></p>
+  </div>
+  <div class="card" id="stepBox"><h2 id="windTitle">Wind-down</h2></div>
+  <p id="windBed" class="faint wind-bed" aria-live="off"></p>
   <button type="button" class="link" id="leaveWind">Leave wind-down</button>
 </div></div>
 
-<!-- TEMPTED / PANIC -->
-<div id="panic" class="sheet hide" role="dialog" aria-labelledby="panicTime"><div>
-  <h1 id="panicTime">--:--</h1>
+<!-- TEMPTED (opened from home or from the dark screen) -->
+<div id="panic" class="sheet black hide" role="dialog" aria-labelledby="panicTitle"><div>
+  <p class="faint" id="panicTime">--:--</p>
+  <h1 id="panicTitle">The feed has no end. Tonight does.</h1>
   <p id="panicMath" class="dim"></p>
-  <div class="breath" id="panicBr" aria-live="polite">The feed has no end.<br>Tonight does.</div>
-  <p class="dim" style="text-align:center">Ten slow breaths. In through the nose, out long. The urge peaks and passes in about two minutes.</p>
+  <p class="dim">Put the phone back where it charges, then breathe along. The urge peaks and passes in about two minutes.</p>
+  <div class="breath" id="panicBr" aria-live="polite">Ready?</div>
+  <div class="bar" aria-hidden="true"><i id="panicBar"></i></div>
+  <p class="faint center" id="panicRound"></p>
+  <button type="button" class="ghost" id="panicStart">Start two minutes of breathing</button>
   <button type="button" id="panicBack">Put the phone down · lights out</button>
   <button type="button" class="ghost" id="panicWind">Take me to the wind-down instead</button>
   <button type="button" class="link" id="panicHome">Back home</button>
 </div></div>
 
-<!-- CAN'T SLEEP / WHY AM I AWAKE -->
-<div id="cant" class="sheet hide" role="dialog" aria-label="Still awake"><div>
+<!-- CAN'T SLEEP (four branches, near-black) -->
+<div id="cant" class="sheet black hide" role="dialog" aria-labelledby="cantHeading"><div>
   <div id="cantPick">
-    <h1>Still awake. What's up?</h1>
+    <h1 id="cantHeading">Still awake. What's up?</h1>
     <p class="dim">Pick what fits. No wrong answer.</p>
     <button type="button" class="quiet" data-why="mind">My mind is racing</button>
     <button type="button" class="quiet" data-why="body">My body won't settle</button>
@@ -200,7 +208,7 @@
   </div>
   <div id="cantAnswer" class="hide">
     <h1 id="cantTitle"></h1>
-    <p id="cantBody"></p>
+    <p id="cantBody" class="dim"></p>
     <div id="cantExtra"></div>
     <button type="button" id="cantBack">Back to the dark</button>
   </div>
@@ -209,22 +217,25 @@
 <!-- DARK / LIGHTS OUT (+ morning wake) -->
 <div id="dark" class="hide" role="dialog" aria-label="Lights out">
   <div class="t" id="darkClock">--:--</div>
-  <p style="margin-top:16px">Phone face-down. Goodnight.</p>
-  <div class="seg" style="max-width:280px" role="group" aria-label="Sound">
+  <p id="darkNote">Phone face-down. Goodnight.</p>
+  <div class="seg" role="group" aria-label="Sound">
     <button type="button" class="ghost" data-snd="rain" aria-pressed="false">Rain</button>
     <button type="button" class="ghost" data-snd="deep" aria-pressed="false">Deep</button>
-    <button type="button" class="ghost" data-snd="off" aria-pressed="false">Silent</button>
+    <button type="button" class="ghost" data-snd="off" aria-pressed="true">Silent</button>
   </div>
-  <p id="sndInfo" style="font-size:13px;margin:8px 0 0">Sound fades out over 20 min. It may stop if the phone locks.</p>
-  <button type="button" class="ghost" id="cantBtn" style="margin-top:36px">I can't sleep</button>
-  <button type="button" class="ghost" id="temptedDark" style="margin-top:8px">I want my phone</button>
-  <button type="button" class="link" id="darkHome" style="margin-top:8px">Back home</button>
-  <div id="alarmBox" class="hide" style="margin-top:28px">
-    <p style="color:#9c7f4e;font-size:22px">Morning. Time to get up.</p>
-    <p style="color:#8a8778;font-size:14px">Stand up and open the curtains, then type <b>UP</b> to stop the alarm. Daylight now is what moves your clock.</p>
-    <label for="alarmInput" class="sr-only">Type UP to stop the alarm</label>
-    <input id="alarmInput" autocomplete="off" autocapitalize="characters">
-  </div>
+  <p id="sndInfo" class="snd-info" aria-live="polite">Tap a sound to start it. It fades to silence over about 20 minutes and may stop if the phone locks.</p>
+  <button type="button" class="ghost" id="cantBtn">I can't sleep</button>
+  <button type="button" class="ghost" id="temptedDark">I want my phone</button>
+  <button type="button" class="link" id="darkHome">Back home</button>
+  <form id="alarmBox" class="hide" autocomplete="off">
+    <p class="wake-title">Morning. Time to get up.</p>
+    <p class="wake-text">Stand up and open the curtains. Daylight within half an hour of waking is what moves your clock. Nothing here can check that — it's on your honour.</p>
+    <label class="wake-check"><input type="checkbox" id="curtainsDone"> I'm up and the curtains are open</label>
+    <label for="alarmInput" class="wake-text">Then type <b>UP</b> to stop the sound</label>
+    <input id="alarmInput" autocapitalize="characters" autocomplete="off" inputmode="text">
+    <p id="alarmHint" class="wake-text" aria-live="polite"></p>
+    <p class="wake-text">This alarm only rings while this page is open. Set a normal alarm too.</p>
+  </form>
 </div>
 <!-- /@night -->
 

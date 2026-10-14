@@ -150,3 +150,20 @@ A nested `/* … /* night */ … */` comment in `app.css` terminated early and s
 - Chart at 375 px is small (440×260 viewBox); the list is the accessible fallback.
 - Desktop verified at 1024 px inside the pane only (no separate desktop browser).
 - Export triggers a file download; on iOS Safari this opens a share sheet rather than saving silently.
+
+---
+## 2026-10-14 — Agent 04 (Fable 5.1): night experience — PARTIAL (session cut off at usage limit)
+
+### Files changed
+- `src/night.js` — replaced wholesale. Timed 30-min wind-down (3/7/5/8/7) anchored on `state.windDown.startedAt`; every step change re-anchors so the new step starts now with full length, early finishes pull the anchor earlier and the settle step absorbs the remainder; lights-out at `max(planned bedtime, anchor+30 min)` or on tap. Resumes after refresh via `state.windDown` (deferred `setTimeout(resumeWindDown, 0)` so `window.MyMind` exists; stale after 3 h). Steps 1, 3, 4 auto-advance at time-up; brain dump shows a nudge and waits; "Leave wind-down" clears `windDown` and goes home. Breathing: 4-7-8 orb or gentle in-4/out-6 one tap away, "stop if dizzy" line, JS-driven progress bar (works under reduced motion; orb never scales there). Body scan: whole script always visible, current line highlighted, 50 s per part, voice opt-in (`prefs.voice` or button), "I'm ready" skips. Four can't-sleep branches (mind → one-line dump + one action; body → short scan / leave the bed; not sleepy → dull activity; phone → put it further + 1 min gentle breathing), each ending in "Back to the dark". Tempted: `domain.sleepRemaining` as "about Xh Ym … a window, not a promise", two minutes of in-4/out-6 with a definite end; wind-down from here calls `startWindDown()` which hides the dark overlay. Audio: generated rain/deep, one source at a time, fade over 20 min (`?fade=0.2` URL param shortens it for testing), re-entry reflects the playing sound and never starts a second. Morning: rising tone at wake (dark screen open only), curtains honour-system checkbox AND `UP` (case/space-insensitive) required, "set a normal alarm too" copy, then home + focus on the morning-log input. Escape closes can't-sleep / tempted sheets. `visibilitychange` recomputes.
+- `index.html` — `@night` region only: new wind-down header (step name + soft time-left), tempted/can't-sleep sheets with `class="sheet black"`, dark screen with `<form id="alarmBox">` (checkbox + input).
+- `app.css` — appended `/* night */ … /* /night */` block (near-black sheets, `.bar`, `.relax-list`, dark controls raised to ≥ 3:1).
+
+### Commands run (results)
+- `node --check` on `src/night.js`, `src/app.js`, `src/domain.js`, `src/storage.js`, `sw.js` → all OK.
+- `node --test` → tests 60 · pass 60 · fail 0.
+- **Browser at 375 px: NOT RUN.** The session hit its usage limit before the preview. Nothing in the card's "Verify" list has been exercised in a browser. Treat every flow as unverified.
+
+### For the next worker (finish Agent 04's verification)
+Serve with `python3 -m http.server 8420` from `.claude/worktrees/`, open `/determined-mccarthy-b63d6f/` at 375×812 and run the card's list: full wind-down (check the time-left label, auto-advance on step 1, the brain-dump nudge, settle → auto dark at bedtime; a plan with bedtime a few minutes away makes this quick), both breathing modes, every can't-sleep branch, tempted from home and from dark (confirm the dark overlay hides when going to wind-down), audio start/switch/stop and `?fade=0.2` fade-out, refresh mid-wind-down (resume), morning dismissal (`up`, ` UP `, checkbox required), keyboard Tab/Escape. Likely rough edges to look for: `.bar` sits with a negative top margin under `.breath` — check spacing; `focusEl` sets `tabIndex=-1` on headings; `#windTitle` is re-created inside `stepBox` on each step (the `aria-labelledby` target).
+- Files for Agent 05's cache list are unchanged from Agent 02's list. `sw.js` `CACHE` needs a bump (not done; not my file).

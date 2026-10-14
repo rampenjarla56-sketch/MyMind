@@ -242,3 +242,68 @@ summary { cursor: pointer; color: var(--dim); font-size: 15px; min-height: var(-
   body { font-size: 18px; }
   main { padding-top: 40px; }
 }
+
+/* night */
+/* Agent 04 — night screens. Near-black surfaces, dim but perceivable controls
+   (≥ 3:1 on black), one primary action per screen, no decoration. */
+.sheet.black { background: #030303; color: #a9a49a; }
+.sheet.black h1 { color: #c9c3b6; font-size: 22px; }
+.sheet.black .dim { color: #8f8a80; }
+.sheet.black .faint { color: #6f6b63; }
+.sheet.black button.quiet { background: #121212; color: #bdb7aa; border-color: #1f1f1f; }
+.sheet.black button.ghost { color: #8f8a80; border-color: #2a2a2a; }
+.sheet.black button.link { color: #7a766d; }
+.sheet.black button:not(.ghost):not(.quiet):not(.link) { background: #6e5a3c; color: #f0e8d8; }
+.sheet.black input, .sheet.black textarea { background: #0a0a0a; border-color: #2a2a2a; color: #c9c3b6; }
+.sheet.black label { color: #8f8a80; }
+.sheet.black .breath { border-color: #6e5a3c; background: radial-gradient(rgba(110,90,60,0.35), rgba(110,90,60,0.06)); color: #c9c3b6; }
+.sheet.black .bar { background: #161616; }
+.sheet.black .bar i { background: #6e5a3c; }
+.center { text-align: center; }
+
+/* wind-down header: progress + soft time-left */
+.wind-head { margin-bottom: 14px; }
+.dots i.done { background: #5f5440; }
+.wind-meta { display: flex; justify-content: space-between; gap: 12px; margin: 0; }
+.wind-bed { text-align: center; margin: 12px 0 4px; }
+#stepBox .overrun-note { display: none; margin: 8px 0 0; }
+#stepBox.overrun .overrun-note { display: block; color: var(--accent); }
+#stepBox .seg { margin-top: 10px; }
+#stepBox .seg button { font-size: 14px; }
+
+/* breathing: orb (scales) + a thin JS-driven bar (also the reduced-motion cue) */
+.bar { height: 4px; border-radius: 2px; background: #232a40; margin: -20px auto 10px; max-width: 220px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--accent); }
+.breath { color: var(--text); font-size: 17px; }
+
+/* body scan: the current line, plus the whole script always visible */
+.relax-now { font-size: 19px; color: var(--text); min-height: 3em; }
+.relax-list { margin: 0 0 14px; padding-left: 20px; color: var(--faint); font-size: 14px; line-height: 1.45; }
+.relax-list li { padding: 3px 0; }
+.relax-list li.now { color: var(--text); }
+.relax-list.short { color: #a9a49a; font-size: 16px; }
+
+/* dark screen: faint, but every control ≥ 3:1 on black */
+#dark .seg { max-width: 280px; }
+#dark p { color: #5a5a5a; }
+#dark #darkNote { margin-top: 16px; }
+#dark .snd-info { font-size: 13px; margin: 8px 0 0; max-width: 300px; }
+#dark button { color: #6a6a6a; }
+#dark #cantBtn { margin-top: 36px; }
+#dark #temptedDark { margin-top: 8px; }
+#dark #darkHome { margin-top: 8px; }
+#dark [data-snd][aria-pressed="true"] { color: #8a8a8a; border-color: #5a4b31; background: #0d0d0d; }
+#dark .t:focus-visible { outline-color: #5a4b31; }
+
+/* morning wake prompt */
+#alarmBox { margin-top: 28px; max-width: 320px; }
+#dark .wake-title { color: #9c7f4e; font-size: 22px; margin-bottom: 8px; }
+#dark .wake-text { color: #7d7a6e; font-size: 14px; margin: 0 0 10px; }
+#dark .wake-check { display: flex; align-items: center; gap: 10px; color: #a39d8e; font-size: 15px; margin: 0 0 12px; justify-content: center; }
+#dark .wake-check input { width: 22px; height: 22px; margin: 0; accent-color: #9c7f4e; }
+#dark #alarmInput { max-width: 120px; margin: 0 auto 8px; text-align: center; background: #0a0a0a; border-color: #3a382f; color: #b0ab9e; }
+
+@media (prefers-reduced-motion: reduce) {
+  .breath { transition: none !important; transform: none !important; }
+}
+/* /night */
