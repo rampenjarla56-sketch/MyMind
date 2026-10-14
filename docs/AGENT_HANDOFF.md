@@ -200,3 +200,8 @@ Not exercised: the 20-min audio fade (code reviewed; `?fade=0.2` hook exists), a
 ### For Agent 01
 - Device install (Android Chrome / iOS Safari) was not possible here; the checklist is in the release report.
 - Any fix to `src/*.js` / `app.css` / `index.html` needs `CACHE` bumped to `mymind-v4` in `sw.js` and `PREVIOUS_CACHE` in `tests/integration.test.js` moved to `mymind-v3`.
+
+---
+## 2026-10-14 — Agent 01 (Fable 5.1): Agent 05 merged, review defects fixed
+
+Fast-forwarded `fc1f2ea` (sw v3, manifest colours, 6 integration tests, release report). Then `3fc7190`: inert shell under overlays (Major), contrast, alarm grace, hours formatting, alarm focus; cache v4. Open: Note #6 (rem-based sizing) → Agent 02 next round. All five cards have run. `main` ready to push on the owner's approval.

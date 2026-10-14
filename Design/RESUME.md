@@ -1,7 +1,12 @@
 # RESUME
 Updated: 2026-10-14 (later the same night: repo recovery + agent foundation)
 
-## Latest (M0 — Agent 01)
+## Latest (M1–M5 complete — all five agents ran, 2026-10-14)
+- `main` at `3fc7190`: domain engine + storage (Agent 03, tests), shell split with design system/onboarding/progress/settings (Agent 02), timed resumable night experience (Agent 04), PWA cache v4 + integration tests + `docs/RELEASE_REPORT.md` (Agent 05), lead fixes for the review's Major (inert overlays) and minors. `node --test` → 66 pass.
+- Verdict: READY for the owner's own phone; no physical-device test yet (checklist in the release report). Open minor: px→rem sizing for OS text-size (Agent 02).
+- Commits are local, not pushed — awaiting owner approval. Preview tool serves a stale folder; use `python3 -m http.server 8430 --directory ~/Documents/MyMind` and open `/MyMind/`.
+
+## Earlier (M0 — Agent 01)
 - Canonical repo is now `~/Documents/MyMind/MyMind` (moved from the session's temp folder; git history recovered via bundle, tag `recovery-2026-10-14`; backups kept beside it). Commits `b89a8a5`, `60b503a`, `6dcf780` are local only — **not pushed**.
 - New process: `AGENTS.md`, `docs/PROJECT_PLAN.md`, `docs/ARCHITECTURE.md`, `docs/TEST_PLAN.md`, `docs/AGENT_HANDOFF.md`, cards in `docs/agents/01..05`. The old `Design/briefs/` are historical.
 - Next: run Agent 03 (domain + tests) → 02 (shell split) → 04 (night) → 05 (PWA/a11y/release) → 01 integration. Session cards were created for 03/02/04/05.

@@ -105,3 +105,10 @@ Checklist for the owner on a real device (served from GitHub Pages at `/MyMind/`
 ## Unmet requirements (card)
 - Deliverable 5 (a11y): focus trap on overlays (Major), `--faint` contrast (Minor), 200 % text scaling not verified.
 - Deliverable 7: install on Android/iOS not possible here; checklist above.
+
+---
+## Lead addendum — 2026-10-14 (after the review above)
+
+Commit `3fc7190` addresses the reviewer's findings: **Major #1 fixed** (`<main>` is now `inert` + `aria-hidden` whenever any night overlay is open — verified in the browser: inert false → true on opening the wind-down → false on leaving); Minors #2 (`--faint` → `#8a877c`, 5.4:1), #3 (alarm ignores the first 60 s after entering the dark screen), #4 (settle countdown formats hours), #5 (alarm box focuses the curtains checkbox) fixed. Note #6 (px font sizes vs OS text-size preference) left open for Agent 02. `CACHE` → `mymind-v4`; integration test updated. `node --test`: 66 pass.
+
+**Lead verdict: READY for the owner's own phone (dogfood).** Not yet verified on a physical Android or iOS device — the reviewer's device checklist above still applies before any wider sharing.
