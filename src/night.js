@@ -18,7 +18,7 @@ const nowClock = () => { const n = new Date(); return n.getHours() * 60 + n.getM
 const sheet = (id, on) => $(id).classList.toggle('hide', !on);
 const isOpen = id => !$(id).classList.contains('hide');
 const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fmtMin = m => { m = Math.max(0, Math.ceil(m)); return m === 1 ? '1 min' : `${m} min`; };
+const fmtMin = m => { m = Math.max(0, Math.ceil(m)); if (m >= 60) { const h = Math.floor(m / 60), r = m % 60; return r ? `${h} h ${r} min` : `${h} h`; } return m === 1 ? '1 min' : `${m} min`; };
 const focusEl = el => { if (!el) return; if (el.tabIndex < 0 && !/^(button|input|textarea)$/i.test(el.tagName)) el.tabIndex = -1; el.focus({ preventScroll: false }); };
 
 // Testing hook (card: "shorten fade via a debug flag during testing"):
@@ -326,12 +326,12 @@ document.querySelectorAll('[data-snd]').forEach(b => b.onclick = () => startSoun
 // =============================================================================
 // DARK SCREEN + MORNING WAKE
 // =============================================================================
-let clockTimer = null, alarm = null, alarmFiredOn = null;
+let clockTimer = null, alarm = null, alarmFiredOn = null, darkOpenedAt = 0;
 
 export function goDark() {
   closePanic(); closeCant();
   if (wd) finishWind();
-  clearInterval(clockTimer);
+  clearInterval(clockTimer); darkOpenedAt = Date.now();
   $('dark').classList.remove('hide');
   $('alarmBox').classList.add('hide');
   if (snd) { markSound(snd.kind); } else {
@@ -354,6 +354,7 @@ $('darkHome').onclick = toHome;
 function checkAlarm() {
   const p = plan();
   if (!p || !p.alarm || !isOpen('dark') || alarm) return;
+  if (Date.now() - darkOpenedAt < 60000) return; // entering the dark inside the wake window must not ring instantly
   const w = parseClock(p.wake); if (w === null) return;
   const now = nowClock(), today = localDate();
   if (now >= w && now < w + 30 && alarmFiredOn !== today) { alarmFiredOn = today; ringAlarm(); }
@@ -361,6 +362,7 @@ function checkAlarm() {
 function ringAlarm() {
   $('alarmBox').classList.remove('hide');
   $('curtainsDone').checked = false; $('alarmInput').value = ''; $('alarmHint').textContent = '';
+  focusEl($('curtainsDone'));
   stopSound(); markSound('off'); sndMsg('');
   try {
     const ctx = ac(); if (ctx.resume) ctx.resume();
@@ -500,3 +502,14 @@ document.addEventListener('visibilitychange', () => {
 // Resume an in-progress wind-down after a refresh. Deferred so app.js has
 // finished building window.MyMind (it imports this module first).
 setTimeout(resumeWindDown, 0);
+
+// While any night overlay is open the daytime shell underneath must be unreachable
+// by Tab and screen readers. One observer covers every open/close path.
+(() => {
+  const main = document.querySelector('main');
+  const overlays = ['wind', 'panic', 'cant', 'dark'].map($).filter(Boolean);
+  const sync = () => { const open = overlays.some(el => !el.classList.contains('hide')); main.inert = open; main.setAttribute('aria-hidden', open ? 'true' : 'false'); };
+  const mo = new MutationObserver(sync);
+  overlays.forEach(el => mo.observe(el, { attributes: true, attributeFilter: ['class'] }));
+  sync();
+})();

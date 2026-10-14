@@ -10,7 +10,7 @@
   --line: #273051;        /* borders */
   --text: #e6e1d4;        /* warm light text */
   --dim: #a09c90;         /* warm dim text (≥ 4.5:1 on card) */
-  --faint: #6c6a62;       /* notes, smallest text (≥ 3:1) */
+  --faint: #8a877c;       /* notes, smallest text (≥ 4.5:1 on --bg) */
   --accent: #c9a46a;      /* restrained gold: one primary per screen */
   --accent-ink: #1a1408;  /* text on accent */
   --accent-soft: rgba(201, 164, 106, 0.14);
