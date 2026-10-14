@@ -174,3 +174,29 @@ Serve with `python3 -m http.server 8420` from `.claude/worktrees/`, open `/deter
 Agent 04 ran out of usage budget before its browser pass, so the lead ran the card's verify list on its branch at 375×812 (served from the worktree on :8430): wind-down step 1 with time-left label; refresh mid-wind-down → resumed at the same step with `state.windDown` intact; step 3 both modes (4-7-8 and gentle in-4/out-6) with the dizzy line; body scan with voice/next/skip; settle → "Lights out now" → dark, `windDown` cleared; tempted from dark shows `sleepRemaining` copy and "take me to the wind-down" hides the dark overlay (QA regression fixed); can't-sleep → not sleepy → back to the dark; rain → deep switches the pressed state (one source), silent stops; morning form refuses ` up ` until the curtains box is ticked, then returns home with focus on the log input; Escape closes sheets. Zero console errors. `node --test` 60/60. Fast-forwarded as `8d446f6`.
 
 Not exercised: the 20-min audio fade (code reviewed; `?fade=0.2` hook exists), auto-advance at step time-up, reduced-motion emulation. Agent 05 should cover these.
+
+---
+## 2026-10-14 — Agent 05 (Fable 5.1): PWA, integration tests, release verification
+
+### Files changed
+- `sw.js` — `CACHE` → `mymind-v3`; precache = the 11-file set from Agent 02's list; `r.ok` guard on both branches (QA #4); cross-origin requests ignored; old caches deleted; relative paths.
+- `manifest.webmanifest` — `theme_color`/`background_color` → `#0a0e1a` (matches the page meta and `--bg`).
+- `tests/integration.test.js` (new, 6 tests) — precache vs disk, cache tag bumped, `r.ok`/cleanup present, JS ids exist in HTML, no absolute URLs, manifest sanity + theme match.
+- `docs/RELEASE_REPORT.md` (new) — full evidence, verdict **NOT READY** (one Major a11y defect, otherwise passing).
+
+### Commands run
+- `node --check` on every JS file → OK. `node --test` → tests 66 · pass 66 · fail 0.
+- Browser: the built-in pane cannot register service workers (script fetch never reaches the server), so SW/offline/network/audio/keyboard ran in real Chrome 152 via the extension; layout + flows also at 375×812 in the pane. Server `python3 -m http.server 8431` from `~/Documents/MyMind`, stopped afterwards; test localStorage, SW registration and caches removed in both browsers.
+- Verified: SW scope `./`, activated, cache `mymind-v3` = exactly the 11 entries; 404 navigation no longer poisons the shell; offline reload serves the full app; zero third-party requests after all flows; `?fade=0.2` fade lifecycle; step-1 auto-advance (via resume path); brain-dump overrun nudge; both breathing modes; body scan; settle → dark; sounds (one source, re-entry safe); four can't-sleep branches; tempted; Escape; morning `UP` + curtains; corrupt storage → setup + `mymind.corrupt`; reset; export → import byte-identical; bad import message; edit plan keeps log; same-morning log replaced; keyboard Tab order + visible focus rings; touch targets ≥ 44 px; contrast measured.
+
+### Defects routed to other owners (repro + smallest fix in `docs/RELEASE_REPORT.md`)
+1. **Major · Agent 04 (`src/night.js`)** — overlays (`wind`, `dark`, sheets) do not make `main` inert; Tab/screen readers reach the home controls underneath. Fix: toggle `document.querySelector('main').inert` (and `aria-hidden`) whenever any night overlay is open/closed.
+2. **Minor · Agent 02 (`app.css`)** — `--faint #6c6a62` is 3.6:1 on `--bg`, used for 13–15 px text incl. the medical disclaimer. Fix: `--faint: #8a877c` (5.4:1).
+3. **Minor · Agent 04** — entering the dark screen inside the wake window rings the alarm immediately (QA #8 still open). Fix: ignore `checkAlarm` for ~60 s after `goDark()` or when dark was entered after the wake time.
+4. **Minor · Agent 04** — settle step can read "lights out in 1441 min"; format hours.
+5. **Minor · Agent 04** — when the alarm fires inside `goDark()`, focus ends on the clock instead of the curtains checkbox.
+6. **Note · Agent 02** — px font sizes ignore the OS text-size preference.
+
+### For Agent 01
+- Device install (Android Chrome / iOS Safari) was not possible here; the checklist is in the release report.
+- Any fix to `src/*.js` / `app.css` / `index.html` needs `CACHE` bumped to `mymind-v4` in `sw.js` and `PREVIOUS_CACHE` in `tests/integration.test.js` moved to `mymind-v3`.
