@@ -106,3 +106,47 @@ Night 0 = `plan.start` at `plan.cur`; each night `−step`, clamped at `goal` (l
 - The HOLD rule compares the previous night only; a late night that was *not* logged is invisible (honest: we never guess).
 - With one plan object the chart cannot show the *previous* plan's dashed line after a plan change; only per-night `onTime` survives, which is what the sky and chart colours use.
 - `sleepOpportunity` of an identical bedtime and wake time returns 0, not 1440.
+
+---
+## 2026-10-14 — Agent 02 (Fable 5.1): shell split, design system, onboarding/home/progress/settings
+
+### Files changed
+- `index.html` — rewritten as shell markup only: `setup`, `home`, `progress`, `settings` sections in `<main>`, a `<dialog id="resetDlg">`, and the night screens (`wind`, `panic`, `cant`, `dark` incl. `alarmBox`) inside `<!-- @night --> … <!-- /@night -->`. Loads `app.css` and `src/app.js` (module). No inline CSS/JS left.
+- `app.css` (new) — tokens (navy/indigo surfaces, warm text, gold accent, indigo focus ring), buttons/inputs/cards/segments/dialog, `:focus-visible` rings, `prefers-reduced-motion` (no scaling; breathing text still conveys phase), ≥ 44 px targets, 17 px inputs (no iOS zoom), system font stack. Night surfaces get tokens only (`.sheet`, `.breath`, `.dots`, `#dark`); Agent 04 appends a `/* night */` block at the end.
+- `src/app.js` (new) — shell. Imports `./domain.js`, `./storage.js`, `./night.js`. Exposes `window.MyMind = { state (getter), save(), go(screen), tick() }`. No time/plan maths re-implemented: every number shown comes from `domain.js`.
+- `src/night.js` (new, **scaffold — Agent 04 owns and should replace it**) — a faithful port of the pre-split night behaviour (5-step wind-down, 4-7-8 breathing, body scan + optional voice, generated rain/deep noise with 20-min fade, dark screen with clock, wake alarm + `UP`, tempted/panic with `domain.sleepRemaining`, can't-sleep branches). Exports `startWindDown()`, `openCant()`, `openTempted()`, `goDark()` per `docs/ARCHITECTURE.md`. Written only so "every existing feature still works after the split"; it is not the timed 30-min wind-down from Agent 04's card. Small additions over the old code: "Leave wind-down" / "Back home" exits on every night sheet (no dead ends from home → can't-sleep → dark), skip-breathing button, `aria-pressed` on sound segments, honours `prefs.sound` (highlights the default, never auto-plays) and `prefs.voice` (auto-starts the quiet voice on the body-scan step).
+
+### Screens (what each does)
+- **Setup**: default step **15**. Live preview (`plannedBedtime`, `windDownStart`, `nightsRemaining` on a draft plan with `start = today`). `validatePlan` errors shown inline after the first submit attempt; focus moves to the offending field. Guardrail: `opportunityCheck(sleepOpportunity(nightMin(goal), wake))` renders the calm "< 8 h" note (gold callout, never red, never blocks). Edit mode (existing plan): note that logged nights stay, Cancel button; saving writes `state.plan` only, `state.log` untouched.
+- **Home**: tonight's bedtime, wind-down time, wake time; countdown recomputed from the wall clock on a 30 s interval, on `visibilitychange` and on `focus`; nights remaining; tonight's sleep opportunity (short line when the goal schedule is fine, the full guardrail message when the goal itself is < 8 h; an at-goal plan under 8 h is never called a success); primary Start wind-down; secondary I'm tempted / I can't sleep; morning check-in (shows last night's plan, saves per Agent 03's note, `onTime` computed before the entry is added); Progress / Settings links.
+- **Progress**: night sky from `skyData` (deterministic hashed positions, moon fills with on-time count, only ever fills) and the 14-night chart from `chartData` ending on *last night* (dashed plan line, green/amber dots, hollow dots for unlogged nights, "nothing is scored" copy). SVGs have `role="img"` + `<title>`/`<desc>`; a "Read as a list" `<details>` lists every night in words (`Oct 6 · plan 05:15 · slept 06:40 · later`), so times across midnight are readable.
+- **Settings**: plan summary + Edit (copy asserts history is kept), default sound (`prefs.sound`), voice (`prefs.voice`), reminder (`prefs.remind`, asks Notification permission on enable), Export (downloads `mymind-YYYY-MM-DD.json` from `storage.exportJSON`), Import (file input → `storage.importJSON`, strict errors shown, state reloaded), **Reset my data** behind a `<dialog>` confirm (falls back to `confirm()`), privacy / not-medical / see-a-doctor / page-open-only text.
+
+### "Which night is tonight?" (UI decision, flagged for Agent 03)
+The domain has no helper for this, so `app.js` has one small rule (`currentNight`): before noon **and** before the wake time, the user is still inside last night → `nightDate = addDays(today, −1)` and "now" is measured as `nightMin(now)`; otherwise `nightDate = today` and "now" is the plain clock minute. Everything else (planned bedtime, wind-down, opportunity) is domain. **Request for Agent 03:** consider a `currentNight(nowMin, wakeMin, today)` export so the shell carries no clock reasoning at all.
+
+### Reminder
+Replaced the old `setTimeout` with a tick-based check (fires once per night when wind-down is ≤ 10 min away, page-open only; notification if granted, otherwise the gold countdown cue). `prefs.remind` is the single source; the home button and the settings toggle flip the same pref.
+
+### Commands run (results)
+- `node --check` on `src/app.js`, `src/night.js`, `src/domain.js`, `src/storage.js`, `sw.js` → all OK.
+- `node --test` → `tests 55 · pass 55 · fail 0`.
+- Browser (built-in pane, `python3 -m http.server 8421` from `.claude/worktrees/`, since port 8420 was already taken by another session serving a different tree): at **375×812** — setup (default values, preview, guardrail at wake 07:00 → "About 6.5 h…", validation with goal 06:00 > current → inline error + focus on goal), start plan → home (02:38 local: tonight = last night's date, bedtime 05:30, "Wind-down starts in 2 h 22 min"), morning log 04:50 → stored `{date, slept, onTime:true}`, seeded 6 nights → progress (HOLD visible: Oct 6 repeats 05:15 after a late Oct 5), settings (sound → rain, voice on, both persisted), export → reset → import round-trip byte-identical, bad JSON → "Not imported: That file is not valid JSON.", reset dialog Keep it / Yes erase → setup, v1 blob migration on load, wind-down steps 1–5 → dark (clock, sound segments, back home), tempted from home (sleep window text), can't-sleep → mind racing → back to the dark → back home, keyboard Tab → visible indigo focus ring, `visibilitychange`/`focus` recompute the countdown. At **1024×800**: layout centred at 480 px, body 18 px, primary button 54 px tall, nav links 45 px.
+- **Not run:** `prefers-reduced-motion` emulation (the browser pane has no media-query emulation); the CSS rule is present and reviewed. Export was exercised through `storage.exportJSON()` rather than the download click (same code path minus the `<a download>`).
+
+### Defect found and fixed during verification
+A nested `/* … /* night */ … */` comment in `app.css` terminated early and swallowed the `.sheet` rule, so overlays lost `position: fixed`. Fixed; overlays verified at `fixed` covering `0,0,375,812`.
+
+### For Agent 05 — file list for `sw.js`
+`./`, `./index.html`, `./app.css`, `./src/app.js`, `./src/domain.js`, `./src/storage.js`, `./src/night.js`, `./manifest.webmanifest`, `./icons/icon-192.png`, `./icons/icon-512.png`, `./icons/icon-180.png`. Bump `CACHE` (currently `mymind-v2`). `theme-color` is now `#0a0e1a` (manifest still says `#0b0d14`; harmless, your call).
+
+### For Agent 04
+- Replace `src/night.js` wholesale; the shell only needs the four exports and calls `MyMind.go('home')` expectations as in the scaffold. `MyMind.save()` normalises and re-reads state — read `MyMind.state` again after saving.
+- **Blocker for your card:** `storage.normalize` keeps only `prefs.sound/voice/remind`; a `prefs.windDown = {startedAt, stepIndex}` would be dropped on save. Needs Agent 03 to allow it (or a dedicated `state.windDown`).
+- Tokens available: `--bg --bg-2 --card --card-2 --line --text --dim --faint --accent --accent-soft --indigo --ok --late`; `.sheet`, `.breath`, `.dots`, `#dark` styles; `.sr-only`; `button.link`.
+- The morning `UP` flow currently returns home and focuses the morning-log input.
+
+### Known limitations / open
+- Chart at 375 px is small (440×260 viewBox); the list is the accessible fallback.
+- Desktop verified at 1024 px inside the pane only (no separate desktop browser).
+- Export triggers a file download; on iOS Safari this opens a share sheet rather than saving silently.
