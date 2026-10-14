@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d14">
+<title>MyMind</title>
+<style>
+:root{--bg:#0b0d14;--card:#141826;--text:#d9d4c7;--dim:#8a8778;--accent:#c9a46a;--ok:#7aa37a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:18px/1.5 -apple-system,system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center}
+main{width:100%;max-width:480px;padding:24px 16px calc(24px + env(safe-area-inset-bottom))}
+h1{font-size:22px;margin:0 0 4px;font-weight:600}
+h2{font-size:20px;margin:0 0 12px;font-weight:600}
+p{margin:0 0 14px}.dim{color:var(--dim);font-size:15px}
+.card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:16px}
+.big{font-size:56px;font-weight:300;letter-spacing:1px;line-height:1.1}
+button{width:100%;padding:16px;border:0;border-radius:14px;background:var(--accent);color:#1a1408;font-size:18px;font-weight:600;margin-top:8px;cursor:pointer}
+button.ghost{background:transparent;color:var(--dim);border:1px solid #2a3047}
+label{display:block;font-size:15px;color:var(--dim);margin:12px 0 4px}
+input,textarea,select{width:100%;padding:12px;border-radius:10px;border:1px solid #2a3047;background:#0e111c;color:var(--text);font:inherit}
+textarea{min-height:140px;resize:vertical}
+.hide{display:none!important}
+.breath{width:160px;height:160px;border-radius:50%;margin:24px auto;background:radial-gradient(#c9a46a55,#c9a46a11);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;text-align:center;transition:transform 4s ease-in-out}
+.dots{display:flex;gap:6px;margin-bottom:16px}.dots i{flex:1;height:4px;border-radius:2px;background:#232a40}.dots i.on{background:var(--accent)}
+#dark{position:fixed;inset:0;background:#000;color:#2b2b2b;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:9}
+#dark .t{font-size:40px;font-weight:200}
+.row{display:flex;gap:8px}.row>*{flex:1}
+</style>
+</head>
+<body>
+<main>
+<!-- HOME -->
+<section id="home">
+  <h1>MyMind</h1>
+  <p class="dim">Tonight, one thing: be in bed on time.</p>
+  <div class="card">
+    <div class="dim">Tonight's bedtime</div>
+    <div class="big" id="tonight">--:--</div>
+    <p class="dim" id="countdown"></p>
+    <p class="dim" id="planinfo"></p>
+    <button id="startWind">Start wind-down</button>
+  </div>
+  <div class="card">
+    <h2>Morning check-in</h2>
+    <p class="dim">When did you actually fall asleep last night?</p>
+    <input type="time" id="slept">
+    <button class="ghost" id="saveLog">Save</button>
+    <p class="dim" id="logInfo" style="margin-top:12px"></p>
+  </div>
+  <button class="ghost" id="editPlan">Edit my plan</button>
+  <p class="dim" style="margin-top:16px">Not medical advice. If sleep trouble lasts for weeks or you feel low or anxious, talk to a parent or doctor.</p>
+</section>
+
+<!-- SETUP -->
+<section id="setup" class="hide">
+  <h1>Your plan</h1>
+  <p class="dim">We move bedtime earlier a little each night. Jumping straight to 12:30 doesn't work.</p>
+  <div class="card">
+    <label>Usual bedtime lately</label><input type="time" id="cur" value="05:30">
+    <label>Goal bedtime</label><input type="time" id="goal" value="00:30">
+    <label>Wake-up time (keep it the same every day)</label><input type="time" id="wake" value="09:00">
+    <label>Shift earlier by</label>
+    <select id="step"><option value="15">15 min per night (gentle)</option><option value="30" selected>30 min per night</option><option value="45">45 min per night (hard)</option></select>
+    <button id="savePlan">Start my plan</button>
+  </div>
+</section>
+
+<!-- WIND DOWN -->
+<section id="wind" class="hide">
+  <div class="dots" id="dots"></div>
+  <div class="card" id="stepBox"></div>
+</section>
+</main>
+
+<div id="dark" class="hide">
+  <div class="t" id="darkClock">--:--</div>
+  <p style="margin-top:24px;color:#333">Phone face-down. Goodnight.</p>
+  <button class="ghost" id="wake2" style="max-width:200px;margin-top:40px;color:#333;border-color:#222">I can't sleep</button>
+</div>
+
+<script>
+const $=id=>document.getElementById(id), KEY='mymind.v1';
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const toMin=t=>{const[a,b]=t.split(':').map(Number);return a*60+b};
+const fmt=m=>{m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const today=()=>new Date().toISOString().slice(0,10);
+const dayDiff=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
+// minutes the bedtime sits "after the previous evening 12:00" so 05:30 > 00:30 > 23:00 ordering works
+const rel=m=>m<12*60?m+1440:m;
+function tonight(){
+  const d=Math.max(0,dayDiff(S.start,today()));
+  const c=rel(toMin(S.cur)),g=rel(toMin(S.goal));
+  return Math.max(g,c-d*S.step);
+}
+function show(id){['home','setup','wind'].forEach(x=>$(x).classList.toggle('hide',x!==id))}
+function renderHome(){
+  show('home');
+  const t=tonight(),g=rel(toMin(S.goal));
+  $('tonight').textContent=fmt(t);
+  const d=Math.max(0,dayDiff(S.start,today())),left=Math.ceil((rel(toMin(S.cur))-g)/S.step)-d;
+  $('planinfo').textContent=t<=g?'You\'re at your goal bedtime. Keep it steady.':`Goal ${fmt(g)} · about ${Math.max(left,0)} more nights. Wake at ${S.wake} every day, then get daylight.`;
+  const last=S.log.slice(-5).reverse().map(l=>l.date.slice(5)+' → '+l.slept).join('  ·  ');
+  $('logInfo').textContent=last?'Recent: '+last:'';
+  tick();
+}
+function tick(){
+  if(!S||$('home').classList.contains('hide'))return;
+  const n=new Date(),now=n.getHours()*60+n.getMinutes(),t=tonight()%1440;
+  let diff=t-now; if(diff<-12*60)diff+=1440; if(diff>12*60)diff-=1440;
+  $('countdown').textContent=diff>0?`Wind-down should start in ${Math.max(diff-30,0)} min (30 min before bed).`:`Bedtime was ${-diff} min ago. Start now — an imperfect night still counts.`;
+}
+setInterval(tick,30000);
+// ---- wind-down ----
+const steps=[
+ ()=>`<h2>1 · Phone away from bed</h2><p>Plug your phone in across the room (or outside the bedroom). Turn on Do Not Disturb. If you need an alarm, set it now.</p><p>Close every feed. Anything still open is tomorrow's problem.</p><button data-next>Done</button>`,
+ ()=>`<h2>2 · Empty your head</h2><p class="dim">Write anything on your mind: worries, to-dos, ideas. It stays on this device.</p><textarea id="dump" placeholder="Tomorrow I need to…"></textarea><button data-next>Done, it's out of my head</button>`,
+ ()=>`<h2>3 · Slow breathing</h2><p class="dim">In 4 · hold 7 · out 8. Four rounds.</p><div class="breath" id="br">Get ready</div><button id="brStart">Start</button>`,
+ ()=>`<h2>4 · Relax your body</h2><p id="relax">Lie down. Let your eyes close. Tap Next for each part.</p><button id="relNext">Start</button>`,
+ ()=>`<h2>5 · Lights out</h2><p>The screen will go black with a faint clock. Put it face-down. If you're still awake after ~20 minutes, tap "I can't sleep": get up, dim light, something boring, back when sleepy.</p><button id="goDark">Lights out</button>`
+];
+let si=0;
+function renderStep(){
+  show('wind');
+  $('dots').innerHTML=steps.map((_,i)=>`<i class="${i<=si?'on':''}"></i>`).join('');
+  $('stepBox').innerHTML=steps[si]();
+  const nx=$('stepBox').querySelector('[data-next]'); if(nx)nx.onclick=()=>{si++;renderStep()};
+  if($('brStart'))$('brStart').onclick=breathe;
+  if($('relNext'))relax();
+  if($('goDark'))$('goDark').onclick=goDark;
+}
+function breathe(){
+  const br=$('br');let round=0;$('brStart').classList.add('hide');
+  const phases=[['Breathe in',4,1.35],['Hold',7,1.35],['Breathe out',8,1]];
+  let p=0;
+  (function run(){
+    if(round>=4){br.textContent='Well done';br.style.transform='scale(1)';setTimeout(()=>{si++;renderStep()},1500);return}
+    const[l,sec,sc]=phases[p];br.textContent=l;br.style.transition=`transform ${sec}s ease-in-out`;br.style.transform=`scale(${sc})`;
+    setTimeout(()=>{p++;if(p>2){p=0;round++}run()},sec*1000);
+  })();
+}
+function relax(){
+  const parts=['Forehead: let it go smooth.','Jaw: unclench, let your teeth part.','Shoulders: drop them away from your ears.','Hands: let them go heavy and open.','Stomach: soft, breathing slowly.','Legs: heavy, sinking into the bed.','Feet: warm and loose.','Now just notice your breathing. Nothing else to do.'];
+  let i=-1;$('relNext').onclick=()=>{i++;if(i>=parts.length){si++;renderStep();return}$('relax').textContent=parts[i];$('relNext').textContent=i===parts.length-1?'I\'m ready':'Next'};
+}
+let clk;
+function goDark(){
+  $('dark').classList.remove('hide');
+  const u=()=>{const n=new Date();$('darkClock').textContent=fmt(n.getHours()*60+n.getMinutes())};u();clk=setInterval(u,20000);
+  try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}catch(e){}
+}
+$('wake2').onclick=()=>{$('dark').classList.add('hide');clearInterval(clk);alert('Get up. Dim light. Do something boring (read paper, stretch). No phone feeds. Come back when sleepy.')};
+// ---- wiring ----
+$('startWind').onclick=()=>{si=0;renderStep()};
+$('editPlan').onclick=()=>{if(S){$('cur').value=S.cur;$('goal').value=S.goal;$('wake').value=S.wake;$('step').value=S.step}show('setup')};
+$('savePlan').onclick=()=>{S={cur:$('cur').value,goal:$('goal').value,wake:$('wake').value,step:+$('step').value,start:today(),log:(S&&S.log)||[]};save();renderHome()};
+$('saveLog').onclick=()=>{const v=$('slept').value;if(!v||!S)return;S.log.push({date:today(),slept:v});save();$('slept').value='';renderHome()};
+if(S&&S.cur)renderHome();else show('setup');
+</script>
+</body>
+</html>
