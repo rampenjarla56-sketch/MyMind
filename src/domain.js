@@ -230,3 +230,11 @@ export function skyData(plan, log) {
   stars.sort((a, b) => (a.nightDate < b.nightDate ? -1 : a.nightDate > b.nightDate ? 1 : 0));
   return { stars, count: stars.length, brightCount: stars.filter(s => s.bright).length };
 }
+
+// Which night is "tonight" for a given wall-clock moment. Before noon and before the
+// wake time the user is still inside last night, so the night date is yesterday and
+// "now" is expressed in night minutes so it compares with a planned bedtime.
+export function currentNight(nowMin, wakeMin, today) {
+  const inNight = nowMin < 720 && nowMin < wakeMin;
+  return { nightDate: inNight ? addDays(today, -1) : today, nowRef: inNight ? nightMin(nowMin) : nowMin, inNight };
+}

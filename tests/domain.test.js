@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  currentNight,
   parseClock, fmtClock, nightMin, localDate, addDays, dayDiff, validatePlan,
   plannedBedtime, windDownStart, nightsRemaining, sleepOpportunity, opportunityCheck,
   sleepRemaining, isOnTime, chartData, skyData,
@@ -293,4 +294,17 @@ describe('skyData', () => {
     assert.ok(after.count >= before.count && after.brightCount >= before.brightCount);
   });
   test('empty log', () => assert.deepEqual(skyData(planA, []), { stars: [], count: 0, brightCount: 0 }));
+});
+
+describe('currentNight', () => {
+  test('before noon and before wake: still last night, now in night minutes', () => {
+    const r = currentNight(80, 540, '2026-10-14');
+    assert.deepEqual(r, { nightDate: '2026-10-13', nowRef: 1520, inNight: true });
+  });
+  test('after wake in the morning: today', () => {
+    assert.deepEqual(currentNight(600, 540, '2026-10-14'), { nightDate: '2026-10-14', nowRef: 600, inNight: false });
+  });
+  test('evening: today, plain clock minutes', () => {
+    assert.deepEqual(currentNight(1380, 540, '2026-10-14'), { nightDate: '2026-10-14', nowRef: 1380, inNight: false });
+  });
 });

@@ -46,6 +46,8 @@ sleepRemaining(nowMin, wakeMin) -> minutes
 isOnTime(actualMin, plannedNightMin, graceMin = 30) -> boolean
 chartData(plan, log, endDate, days = 14) -> [{ nightDate, planned, actual|null, onTime|null }]
 skyData(plan, log) -> { stars: [{ nightDate, bright }], count, brightCount }
+currentNight(nowMin, wakeMin, today) -> { nightDate, nowRef, inNight }
+   // before noon AND before wake → still last night: nightDate = yesterday, nowRef in night minutes
 ```
 `plan = { cur:'HH:MM', goal:'HH:MM', wake:'HH:MM', step:15|30|45, start:'YYYY-MM-DD', alarm:boolean }`
 `log = [{ date:'YYYY-MM-DD' (morning), slept:'HH:MM', onTime:boolean }]` — one entry per date; a later save for the same date replaces it.
@@ -56,7 +58,8 @@ load() -> state            // validates; migrates v1 (`mymind.v1`) → v2 (`mymi
 save(state) -> void
 reset() -> void            // explicit user action only
 exportJSON() -> string     importJSON(str) -> { ok, errors }
-state = { v:2, plan|null, log:[], prefs:{ sound:'off'|'rain'|'deep', voice:boolean, remind:boolean } }
+state = { v:2, plan|null, log:[], prefs:{ sound:'off'|'rain'|'deep', voice:boolean, remind:boolean },
+          windDown: { startedAt: epochMs, stepIndex: int } | null }   // in-progress wind-down for resume; night.js owns it
 ```
 
 ## UI contracts

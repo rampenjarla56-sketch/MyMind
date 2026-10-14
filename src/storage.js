@@ -21,7 +21,15 @@ export const KEY_CORRUPT = 'mymind.corrupt';
 const SOUNDS = ['off', 'rain', 'deep'];
 
 export function freshState() {
-  return { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false } };
+  return { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false }, windDown: null };
+}
+
+// In-progress wind-down so a refresh mid-routine can resume. Owned by night.js.
+function normalizeWindDown(w) {
+  if (!isObj(w)) return null;
+  const startedAt = Number(w.startedAt), stepIndex = Number(w.stepIndex);
+  if (!Number.isFinite(startedAt) || startedAt <= 0 || !Number.isInteger(stepIndex) || stepIndex < 0) return null;
+  return { startedAt, stepIndex };
 }
 
 function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
@@ -67,14 +75,14 @@ function normalizePrefs(p) {
 export function normalize(raw) {
   if (!isObj(raw)) return freshState();
   const plan = normalizePlan(raw.plan);
-  return { v: 2, plan, log: normalizeLog(raw.log, plan), prefs: normalizePrefs(raw.prefs) };
+  return { v: 2, plan, log: normalizeLog(raw.log, plan), prefs: normalizePrefs(raw.prefs), windDown: normalizeWindDown(raw.windDown) };
 }
 
 // v1 blob {cur,goal,wake,step,alarm,start,log} → v2 state.
 export function migrateV1(v1) {
   if (!isObj(v1)) return freshState();
   const plan = normalizePlan({ cur: v1.cur, goal: v1.goal, wake: v1.wake, step: v1.step, start: v1.start, alarm: v1.alarm });
-  return { v: 2, plan, log: normalizeLog(v1.log, plan), prefs: freshState().prefs };
+  return { v: 2, plan, log: normalizeLog(v1.log, plan), prefs: freshState().prefs, windDown: null };
 }
 
 // Strict check used by importJSON: reports problems instead of repairing them.

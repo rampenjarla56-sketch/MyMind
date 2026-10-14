@@ -10,7 +10,7 @@ class MockStorage {
 }
 
 const plan = { cur: '05:30', goal: '00:30', wake: '09:00', step: 30, start: '2026-10-01', alarm: true };
-const FRESH = { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false } };
+const FRESH = { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false }, windDown: null };
 let store, S;
 beforeEach(() => { store = new MockStorage(); S = createStorage(store); });
 
@@ -72,7 +72,7 @@ describe('load', () => {
 
 describe('save / reset / export / import', () => {
   test('save → load round-trip', () => {
-    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'deep', voice: true, remind: false } };
+    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'deep', voice: true, remind: false }, windDown: null };
     S.save(st);
     assert.deepEqual(S.load(), st);
     assert.equal(typeof store.getItem(KEY), 'string');
@@ -97,7 +97,7 @@ describe('save / reset / export / import', () => {
     assert.deepEqual(S.load(), FRESH);
   });
   test('export → import round-trip into another store', () => {
-    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'rain', voice: false, remind: true } };
+    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'rain', voice: false, remind: true }, windDown: null };
     S.save(st);
     const json = S.exportJSON();
     assert.deepEqual(JSON.parse(json), st);
@@ -138,5 +138,21 @@ describe('default exports use globalThis.localStorage', () => {
   test('no storage at all → fresh state, no throw', () => {
     assert.deepEqual(load(), FRESH);
     assert.doesNotThrow(() => save(FRESH));
+  });
+});
+
+describe('windDown resume state', () => {
+  test('fresh state has windDown null and a valid object survives save/load', () => {
+    const store = new Map();
+    const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
+    assert.equal(s.load().windDown, null);
+    const st = s.load(); st.windDown = { startedAt: 1760000000000, stepIndex: 2 }; s.save(st);
+    assert.deepEqual(s.load().windDown, { startedAt: 1760000000000, stepIndex: 2 });
+  });
+  test('garbage windDown is dropped', () => {
+    const store = new Map();
+    const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
+    const st = s.load(); st.windDown = { startedAt: 'x', stepIndex: -1 }; s.save(st);
+    assert.equal(s.load().windDown, null);
   });
 });

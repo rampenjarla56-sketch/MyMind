@@ -7,8 +7,7 @@ import {
   parseClock, fmtClock, nightMin, localDate, addDays,
   validatePlan, plannedBedtime, windDownStart, nightsRemaining,
   sleepOpportunity, opportunityCheck, isOnTime, chartData, skyData,
-  WIND_DOWN_MIN,
-} from './domain.js';
+  WIND_DOWN_MIN, currentNight as domainCurrentNight } from './domain.js';
 import * as storage from './storage.js';
 import { startWindDown, openCant, openTempted } from './night.js';
 
@@ -24,13 +23,7 @@ function nowClock() { const n = new Date(); return n.getHours() * 60 + n.getMinu
 // Which night is "tonight"? Before noon and before the wake time we are still
 // inside last night (its date is yesterday's evening). Otherwise tonight is today.
 function currentNight(plan) {
-  const now = nowClock();
-  const wake = parseClock(plan.wake) ?? 0;
-  const inNight = now < 720 && now < wake;
-  const nightDate = inNight ? addDays(localDate(), -1) : localDate();
-  // Reference "now" on the same night-minute scale as the planned bedtime.
-  const nowRef = inNight ? nightMin(now) : now;
-  return { nightDate, nowRef, inNight };
+  return domainCurrentNight(nowClock(), parseClock(plan.wake) ?? 0, localDate());
 }
 
 function fmtDur(min) {
