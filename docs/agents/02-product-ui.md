@@ -21,7 +21,7 @@ Read-only: `src/domain.js`, `src/storage.js`, `src/night.js`, `sw.js`, `manifest
 No external fonts/images/CDNs. No new router or storage layer. No streak/competition UI. Night screens' visual design: set tokens only; Agent 04 owns their behavior.
 
 ## Verify (actually run)
-`node --check src/app.js`; `node --test tests/` still green; browser at 375×812 and desktop: setup (incl. guardrail and validation), home, progress, settings, reset, export/import, keyboard-only pass, reduced-motion emulation. Screenshots in the report.
+`node --check src/app.js`; `node --test` still green; browser at 375×812 and desktop: setup (incl. guardrail and validation), home, progress, settings, reset, export/import, keyboard-only pass, reduced-motion emulation. Screenshots in the report.
 
 ## Report
 Append to `docs/AGENT_HANDOFF.md`: files, commands + results, screens verified, interface needs for Agents 03/04, known defects. Tell Agent 05 the new file list for `sw.js`.

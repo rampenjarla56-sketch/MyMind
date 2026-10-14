@@ -16,7 +16,7 @@ Architecture, interfaces, ownership, this card set.
 ## Phase D — Integration (after Agents 02–05)
 1. `git log --oneline --all`; read every diff (`git diff <base>..<branch>`), not summaries.
 2. Reject: duplicate time logic outside `src/domain.js`; any network request; placeholder controls; `toISOString()` dates; timers assumed to keep running; copy that shames or makes medical claims.
-3. Run `node --test tests/` and `node --check` on every JS file; open the app at 375 px and walk `docs/TEST_PLAN.md` manual items 1–8.
+3. Run `node --test` and `node --check` on every JS file; open the app at 375 px and walk `docs/TEST_PLAN.md` manual items 1–8.
 4. Ensure `sw.js` cache name bumped and asset list complete.
 5. Update `Design/RESUME.md` and `docs/AGENT_HANDOFF.md`; write the final status.
 6. Ask the owner before any push. Never force-push.

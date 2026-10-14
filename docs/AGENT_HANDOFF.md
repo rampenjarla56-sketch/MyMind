@@ -88,12 +88,12 @@ Night 0 = `plan.start` at `plan.cur`; each night `−step`, clamped at `goal` (l
 - `localStorage` throwing (private mode, quota) is swallowed; the app keeps running in memory.
 
 ### Commands run
-- `node --test` and `node --test tests/*.test.js` → `tests 55 · suites 11 · pass 55 · fail 0` (Node v24.19.0).
+- `node --test` and `node --test*.test.js` → `tests 55 · suites 11 · pass 55 · fail 0` (Node v24.19.0).
 - `node --check` on `src/domain.js`, `src/storage.js`, both test files → OK.
 - Browser at 375 px: **not run** — this task ships no UI and `index.html` is unchanged; nothing to open until Agent 02 wires the shell.
 
 ### Interface requests / notes for Agent 01
-- `node --test tests/` (trailing slash, as written in `AGENTS.md` and the card) **does not work on Node 24**: positional args are file globs, so it tries to load a module named `tests` and fails. Working forms: `node --test` (default `**/*.test.js` discovery) or `node --test tests/*.test.js`. Please update `AGENTS.md`/`docs/TEST_PLAN.md`.
+- `node --test` (trailing slash, as written in `AGENTS.md` and the card) **does not work on Node 24**: positional args are file globs, so it tries to load a module named `tests` and fails. Working forms: `node --test` (default `**/*.test.js` discovery) or `node --test*.test.js`. Please update `AGENTS.md`/`docs/TEST_PLAN.md`.
 
 ### Notes for Agent 02 (shell)
 - Save a morning log as `{ date: localDate(), slept, onTime: isOnTime(parseClock(slept), plannedBedtime(plan, log, addDays(localDate(), -1))) }`; compute `onTime` *before* pushing the new entry so the stored value is the historical truth. `save()` dedupes by date.

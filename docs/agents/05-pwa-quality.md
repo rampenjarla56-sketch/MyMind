@@ -21,7 +21,7 @@ Make MyMind a genuine installable offline-first app, then independently challeng
 No new framework, backend, or dependency. Don't mark READY because the home page renders.
 
 ## Verify (actually run)
-`node --test tests/` · browser Application panel: SW active, correct scope, cache contents · offline reload · network panel empty of third parties.
+`node --test` · browser Application panel: SW active, correct scope, cache contents · offline reload · network panel empty of third parties.
 
 ## Report
 `docs/RELEASE_REPORT.md` + a short entry in `docs/AGENT_HANDOFF.md` listing defects routed to other owners.

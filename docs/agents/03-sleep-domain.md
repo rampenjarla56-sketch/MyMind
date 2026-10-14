@@ -14,13 +14,13 @@ Build the one tested engine behind MyMind. Every schedule number, saved record a
 4. `sleepOpportunity` + `opportunityCheck` (warn < 480 min; message is calm, mentions "8–10 h", no diagnosis, no "cure"). `sleepRemaining` for the tempted screen.
 5. `chartData` (14 rows, `actual:null` for missing, historical `planned` from the plan+log, not from today's plan), `skyData` (one star per log entry; bright if on time; adding a late night never reduces either count).
 6. `src/storage.js`: `load/save/reset/exportJSON/importJSON` over `mymind.v2`; migrate `mymind.v1` (`{cur,goal,wake,step,alarm,start,log}` → `{v:2,plan,log,prefs}`; compute `onTime` for legacy entries; leave the v1 key untouched); corrupt JSON → fresh state and blob preserved at `mymind.corrupt`; missing `log` repaired. Inject `localStorage` via a parameter or `globalThis` so tests can mock it with a Map.
-7. Tests per `docs/TEST_PLAN.md` → Automated. Target ≥ 40 assertions. `node --test tests/` must pass.
+7. Tests per `docs/TEST_PLAN.md` → Automated. Target ≥ 40 assertions. `node --test` must pass.
 
 ## Constraints
 No dependencies. Local dates only (`localDate`), never `toISOString()`. Keep safety (`opportunityCheck`) separate from progression. Do not change an exported signature; if one is wrong, write the proposed change in `docs/AGENT_HANDOFF.md` and stop.
 
 ## Verify (actually run)
-`node --test tests/` · `node --check src/domain.js src/storage.js` · paste the test summary into your report.
+`node --test` · `node --check src/domain.js src/storage.js` · paste the test summary into your report.
 
 ## Report
 Append to `docs/AGENT_HANDOFF.md`: exported signatures (copy them), the time model in five lines, storage schema, test counts and output, known limitations.

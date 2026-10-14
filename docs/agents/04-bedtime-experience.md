@@ -22,7 +22,7 @@ Read-only: everything else. Need a token or a shell hook? Request it in `docs/AG
 No second scheduling engine, storage layer, or router — use `window.MyMind` and `domain`. No video, feeds, journals, reward animations. No paid voice APIs.
 
 ## Verify (actually run)
-Full wind-down at 375 px; both breathing modes; every can't-sleep branch; tempted from home and from dark; audio start/switch/stop/fade (shorten fade via a debug flag during testing, restore after); refresh mid-wind-down; morning dismissal with `up`, ` UP `; reduced-motion; keyboard. `node --check src/night.js`; `node --test tests/` unaffected.
+Full wind-down at 375 px; both breathing modes; every can't-sleep branch; tempted from home and from dark; audio start/switch/stop/fade (shorten fade via a debug flag during testing, restore after); refresh mid-wind-down; morning dismissal with `up`, ` UP `; reduced-motion; keyboard. `node --check src/night.js`; `node --test` unaffected.
 
 ## Report
 Append to `docs/AGENT_HANDOFF.md`: interactions actually tested, browser limits observed, tokens/hooks you needed, files for Agent 05's cache list.

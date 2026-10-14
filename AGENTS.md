@@ -14,7 +14,7 @@ Read this, then `docs/ARCHITECTURE.md`, then your card in `docs/agents/`. Read `
 - No placeholder buttons, dead navigation, or fake integrations.
 
 ## Engineering rules
-- Stack: plain HTML/CSS/ES modules, no build step, no dependencies. Tests run with `node --test tests/`. Node ≥ 20.
+- Stack: plain HTML/CSS/ES modules, no build step, no dependencies. Tests run with `node --test`. Node ≥ 20.
 - All paths relative (`./`) — the site is served from `/MyMind/` on GitHub Pages.
 - Time/schedule/persistence logic lives ONLY in `src/domain.js` and `src/storage.js`. UI never re-implements it.
 - Dates are local calendar dates (`YYYY-MM-DD` from local `getFullYear/getMonth/getDate`), never `toISOString()`.
@@ -22,7 +22,7 @@ Read this, then `docs/ARCHITECTURE.md`, then your card in `docs/agents/`. Read `
 - Countdowns are computed from `Date.now()` on every tick and on `visibilitychange`; never assume a timer kept running.
 - Edit only the files your card owns (see `docs/ARCHITECTURE.md` → File ownership). Need something outside? Write the smallest interface request in `docs/AGENT_HANDOFF.md` and stop.
 - Bump `CACHE` in `sw.js` (and its asset list) whenever shipped files change — Agent 05 owns this; others note it in the handoff.
-- Run the real checks before reporting: `node --test tests/`, `node --check` on every JS file, and open the app in the browser at 375 px. Report what you actually ran. Never claim a test passed that you did not run.
+- Run the real checks before reporting: `node --test`, `node --check` on every JS file, and open the app in the browser at 375 px. Report what you actually ran. Never claim a test passed that you did not run.
 - Git: commit on your own branch or in the shared tree as the lead instructs. Never `reset --hard`, `clean -fdx`, force-push, or push to GitHub. Pushing needs the owner's explicit approval.
 - Commit messages end with: `Co-Authored-By: <your model name> <noreply@anthropic.com>`.
 

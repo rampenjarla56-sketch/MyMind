@@ -1,6 +1,6 @@
 # MyMind — Test plan
 
-## Automated (`node --test tests/`)
+## Automated (`node --test`)
 Owner: Agent 03 for domain/storage, Agent 05 for integration.
 
 ### domain.test.js
