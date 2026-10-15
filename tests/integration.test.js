@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = p => readFileSync(join(ROOT, p), 'utf8');
-const PREVIOUS_CACHE = 'mymind-v5';
+const PREVIOUS_CACHE = 'mymind-v6';
 
 const sw = read('sw.js');
 const html = read('index.html');
