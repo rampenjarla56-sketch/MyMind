@@ -103,6 +103,7 @@ function finishWind() {
   wd = null;
   persistWind(null);
   sheet('wind', false);
+  $('wind').classList.remove('black');
 }
 
 function leaveWind() { finishWind(); MM().go('home'); }
@@ -117,6 +118,12 @@ function windTick() {
     const toDark = (darkAt() - now) / 60000;
     $('windLeft').textContent = toDark <= 0 ? 'Lights out now' : `lights out in ${fmtMin(toDark)}`;
     if (toDark <= 0) { finishWind(); goDark(); return; }
+    // Started well before bedtime: say so plainly and drop to the near-black treatment
+    // rather than parking a lit navy card in front of the user for hours.
+    const early = toDark > 60, at = new Date(darkAt());
+    $('wind').classList.toggle('black', early);
+    const note = $('settleEarly');
+    if (note) { note.classList.toggle('hide', !early); note.textContent = early ? `You're early — lights out is at ${fmtClock(at.getHours() * 60 + at.getMinutes())}. Stay here quietly, or tap Lights out now.` : ''; }
   } else if (left <= 0) {
     $('windLeft').textContent = 'time is up for this step';
     if (AUTO_ADVANCE[wd.step]) { nextStep(); return; }
@@ -124,6 +131,7 @@ function windTick() {
   } else {
     $('windLeft').textContent = `about ${fmtMin(left)} left`;
   }
+  if (!last) $('wind').classList.remove('black');
   const bed = bedtimeEpoch();
   const at = new Date(darkAt());
   $('windBed').textContent = bed === null ? '' : `Lights out at ${fmtClock(at.getHours() * 60 + at.getMinutes())}.`;
@@ -172,6 +180,7 @@ const STEPS = [
     <button type="button" class="quiet" id="relNext">Next part</button>
     <button type="button" class="ghost" data-next>I'm ready — skip ahead</button>`,
   () => `<h2 id="windTitle">Settle</h2>
+    <p class="dim hide" id="settleEarly"></p>
     <p>Nothing left to do. Eyes closed if you like. When it's time, the screen goes almost black with a faint clock, and you put the phone face-down.</p>
     <p class="dim">If you're still awake after about twenty minutes in the dark, tap "I can't sleep" — getting up for a bit beats lying there fighting it.</p>
     <button type="button" id="goDarkNow">Lights out now</button>`,
@@ -360,6 +369,7 @@ function checkAlarm() {
   if (now >= w && now < w + 30 && alarmFiredOn !== today) { alarmFiredOn = today; ringAlarm(); }
 }
 function ringAlarm() {
+  closePanic(); closeCant(); // the wake form must not appear underneath an open sheet
   $('alarmBox').classList.remove('hide');
   $('curtainsDone').checked = false; $('alarmInput').value = ''; $('alarmHint').textContent = '';
   focusEl($('curtainsDone'));
@@ -460,7 +470,7 @@ const WHYS = {
         <button type="button" class="ghost" id="cantBrStart">One minute of slow breathing</button>`,
   },
 };
-let cantStop = null;
+let cantStop = null, cantFromDark = false; // where the sheet was opened from decides where "back" goes
 document.querySelectorAll('[data-why]').forEach(b => b.onclick = () => {
   const w = WHYS[b.dataset.why];
   $('cantTitle').textContent = w.t; $('cantBody').textContent = w.b; $('cantExtra').innerHTML = w.x;
@@ -475,14 +485,18 @@ document.querySelectorAll('[data-why]').forEach(b => b.onclick = () => {
 export function openCant() {
   closePanic();
   if (cantStop) { cantStop(); cantStop = null; }
+  cantFromDark = isOpen('dark');
   $('cantPick').classList.remove('hide'); $('cantAnswer').classList.add('hide'); $('cantExtra').innerHTML = '';
+  $('cantBack').textContent = $('cantBack0').textContent = cantFromDark ? 'Back to the dark' : 'Back home';
+  $('cantHomeBtn').classList.toggle('hide', !cantFromDark); // from home it would duplicate the primary action
   sheet('cant', true);
   focusEl($('cantHeading'));
 }
 function closeCant() { if (cantStop) { cantStop(); cantStop = null; } sheet('cant', false); }
+function cantBack() { closeCant(); if (cantFromDark) goDark(); else toHome(); }
 $('cantBtn').onclick = openCant;
-$('cantBack').onclick = () => { closeCant(); goDark(); };
-$('cantBack0').onclick = () => { closeCant(); goDark(); };
+$('cantBack').onclick = cantBack;
+$('cantBack0').onclick = cantBack;
 $('cantHomeBtn').onclick = () => { closeCant(); toHome(); };
 
 // Escape closes the two overlay sheets back to wherever they came from.

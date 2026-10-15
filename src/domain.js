@@ -36,6 +36,7 @@ const CLOCK_RE = /^([01]?\d|2[0-3]):([0-5]\d)$/;
 export const HOLD_LATE_MIN = 60;
 export const WIND_DOWN_MIN = 30;
 export const MIN_OPPORTUNITY = 480;
+export const ON_TIME_EARLY_MAX = 180; // a 'slept' time more than 3 h before the plan is not on time (likely a mis-entry)
 
 // ---- clock -----------------------------------------------------------------
 
@@ -191,9 +192,12 @@ export function sleepRemaining(nowMin, wakeMin) {
   return (((wakeMin - nowMin) % 1440) + 1440) % 1440;
 }
 
+// On time = within the grace after the plan, and not absurdly early: an
+// afternoon entry (15:30 against a 05:00 plan) is still a logged star, just not on time.
 export function isOnTime(actualMin, plannedNightMin, graceMin = 30) {
   if (!Number.isFinite(actualMin) || !Number.isFinite(plannedNightMin)) return false;
-  return nightMin(actualMin) <= plannedNightMin + graceMin;
+  const actual = nightMin(actualMin);
+  return actual <= plannedNightMin + graceMin && actual >= plannedNightMin - ON_TIME_EARLY_MAX;
 }
 
 // Stored onTime is the historical truth (judged against the plan of that time);

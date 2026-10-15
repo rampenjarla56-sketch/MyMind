@@ -259,6 +259,9 @@ summary { cursor: pointer; color: var(--dim); font-size: 0.9375rem; min-height: 
 .sheet.black .breath { border-color: #6e5a3c; background: radial-gradient(rgba(110,90,60,0.35), rgba(110,90,60,0.06)); color: #c9c3b6; }
 .sheet.black .bar { background: #161616; }
 .sheet.black .bar i { background: #6e5a3c; }
+/* early wind-down: the settle card goes near-black too (see night.js windTick) */
+.sheet.black .card { background: #0a0a0a; border-color: #1f1f1f; }
+.sheet.black .card h2, .sheet.black .card p { color: #a9a49a; }
 .center { text-align: center; }
 
 /* wind-down header: progress + soft time-left */

@@ -156,6 +156,13 @@ function renderHome() {
 
   $('tonight').textContent = fmtClock(planned);
   $('windAt').textContent = `Wind-down at ${fmtClock(windDownStart(planned))} · wake at ${plan.wake}`;
+  // HOLD (domain): tonight repeats last night's planned value only when last night
+  // was logged late. Detect it by comparing the two planned values; the rule itself stays in domain.
+  const prevNight = addDays(nightDate, -1);
+  const held = planned > goal && nightDate > plan.start && planned === plannedBedtime(plan, log, prevNight) &&
+    log.some(l => l.date === nightDate && l.onTime === false);
+  $('holdInfo').textContent = held ? `Holding tonight's bedtime at ${fmtClock(planned)} after a late night — no step lost, just steady.` : '';
+  $('holdInfo').classList.toggle('hide', !held);
   $('planinfo').textContent = planned <= goal
     ? (opp.ok ? "You're at your goal bedtime. Keep it steady." : "You're at the bedtime you set. See the note below.")
     : `Goal ${plan.goal} · about ${left} more night${left === 1 ? '' : 's'}. Same wake time every day, then daylight.`;

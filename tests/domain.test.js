@@ -229,6 +229,21 @@ describe('sleep opportunity and safety', () => {
     assert.equal(isOnTime(parseClock('01:45'), 1500, 60), true);
     assert.equal(isOnTime(null, 1500), false);
   });
+  test('isOnTime rejects times more than 3 h before the plan (mis-entries)', () => {
+    const plan5 = nightMin(parseClock('05:00')); // 1740
+    assert.equal(isOnTime(parseClock('15:30'), plan5), false); // afternoon
+    assert.equal(isOnTime(parseClock('12:00'), plan5), false); // noon
+    assert.equal(isOnTime(parseClock('02:00'), plan5), true);  // exactly 3 h early
+    assert.equal(isOnTime(parseClock('01:59'), plan5), false); // 3 h 1 min early
+    assert.equal(isOnTime(parseClock('04:30'), plan5), true);
+    assert.equal(isOnTime(parseClock('21:00'), 1500), false);  // 4 h before 01:00
+  });
+  test('an afternoon entry is still a logged (dim) star', () => {
+    const log = [{ date: night(2), slept: '15:30' }];
+    const sky = skyData(planA, log);
+    assert.equal(sky.count, 1);
+    assert.equal(sky.brightCount, 0);
+  });
 });
 
 describe('chartData', () => {
