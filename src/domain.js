@@ -109,6 +109,10 @@ export function validatePlan(plan) {
   if (mins.cur != null && mins.goal != null && nightMin(mins.goal) > nightMin(mins.cur)) {
     errors.push('The goal bedtime has to be earlier than (or the same as) the current one.');
   }
+  if (mins.wake != null && mins.cur != null && mins.goal != null &&
+      (nightMin(mins.wake) <= nightMin(mins.cur) || nightMin(mins.wake) <= nightMin(mins.goal))) {
+    errors.push('The wake time has to come after both bedtimes (morning, after you have slept).');
+  }
   const step = Number(p.step);
   if (!STEPS.includes(step)) errors.push('Pick a step of 15, 30 or 45 minutes.');
   return { ok: errors.length === 0, errors };
@@ -237,4 +241,14 @@ export function skyData(plan, log) {
 export function currentNight(nowMin, wakeMin, today) {
   const inNight = nowMin < 720 && nowMin < wakeMin;
   return { nightDate: inNight ? addDays(today, -1) : today, nowRef: inNight ? nightMin(nowMin) : nowMin, inNight };
+}
+
+// Which night the morning check-in describes. Before the planned bedtime on a
+// night still in progress (02:00, bed at 05:00) the user has not slept yet, so
+// "last night" is the night before the one in progress.
+export function logNight(nowMin, wakeMin, today, plannedNightMin) {
+  const cn = currentNight(nowMin, wakeMin, today);
+  const notYetInBed = cn.inNight && plannedNightMin !== null && cn.nowRef < plannedNightMin;
+  const nightDate = notYetInBed ? addDays(cn.nightDate, -1) : (cn.inNight ? cn.nightDate : addDays(today, -1));
+  return { nightDate, morningDate: addDays(nightDate, 1) };
 }

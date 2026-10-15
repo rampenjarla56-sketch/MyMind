@@ -213,3 +213,7 @@ Fast-forwarded `fc1f2ea` (sw v3, manifest colours, 6 integration tests, release 
 - Commands: `node --test` → 66 pass / 0 fail. Served `python3 -m http.server 8431` from `~/Documents/MyMind` (stopped afterwards); built-in browser at 375×812: setup, home, settings and the dark screen look unchanged; `document.documentElement.style.fontSize='200%'` on home → body 34px, big clock 116px, `scrollWidth` 375 (no horizontal overflow, nav wraps under the title). Test localStorage removed.
 - **For Agent 05**: `app.css` changed → bump `CACHE` in `sw.js` (v4 → v5) and move `PREVIOUS_CACHE` in `tests/integration.test.js`. Not edited here.
 - Open: none from this round.
+
+---
+## 2026-10-14 — Agent 01 (Fable 5.1): QA round 2 fixes
+Review in `Review/qa-round2-2026-10-14.md` (0 Blocker · 2 Major · 7 Minor). Fixed: Major 1 — morning check-in before the planned bedtime (02:00, bed at 05:00) now targets the night *before* the one in progress (`domain.logNight`, used by `app.js`); Major 2 — `validatePlan` rejects a wake time that is not after both bedtimes; Minors — alarm LFO no longer spikes volume at t=0, focus after UP waits for `<main>` to leave inert. Cache `mymind-v6`. 73 tests pass. Still open (Minors/Notes): afternoon slept times judged on-time, alarm form under an open sheet, early wind-down settle copy, HOLD silent on home, can't-sleep-from-home "Back to the dark" routing — next round.

@@ -371,7 +371,7 @@ function ringAlarm() {
     const now = ctx.currentTime;
     g.gain.setValueAtTime(0.0001, now);
     g.gain.exponentialRampToValueAtTime(0.3, now + 120); // rises gently over two minutes
-    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.5; lg.gain.value = 0.5;
+    const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.5; lg.gain.setValueAtTime(0.0001, now); lg.gain.exponentialRampToValueAtTime(0.1, now + 120);
     lfo.connect(lg); lg.connect(g.gain); lfo.start(); o.start();
     alarm = { o, lfo };
   } catch { alarm = { o: null, lfo: null }; /* silent wake prompt still shows */ }
@@ -386,7 +386,7 @@ function tryDismissAlarm() {
   if (typed && !curtains) { $('alarmHint').textContent = 'Tick the curtains box first — then the sound stops.'; return; }
   if (!typed) { $('alarmHint').textContent = ''; return; }
   stopAlarm(); toHome();
-  const slept = $('slept'); if (slept) slept.focus();
+  setTimeout(() => { const slept = $('slept'); if (slept) slept.focus(); }, 0); // after the inert observer releases <main>
 }
 $('alarmInput').oninput = tryDismissAlarm;
 $('curtainsDone').onchange = tryDismissAlarm;

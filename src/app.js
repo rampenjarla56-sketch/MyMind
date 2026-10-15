@@ -7,7 +7,7 @@ import {
   parseClock, fmtClock, nightMin, localDate, addDays,
   validatePlan, plannedBedtime, windDownStart, nightsRemaining,
   sleepOpportunity, opportunityCheck, isOnTime, chartData, skyData,
-  WIND_DOWN_MIN, currentNight as domainCurrentNight } from './domain.js';
+  WIND_DOWN_MIN, currentNight as domainCurrentNight, logNight } from './domain.js';
 import * as storage from './storage.js';
 import { startWindDown, openCant, openTempted } from './night.js';
 
@@ -22,6 +22,11 @@ function nowClock() { const n = new Date(); return n.getHours() * 60 + n.getMinu
 
 // Which night is "tonight"? Before noon and before the wake time we are still
 // inside last night (its date is yesterday's evening). Otherwise tonight is today.
+function logTarget(plan, log) {
+  const { nightDate: cur } = currentNight(plan);
+  return logNight(nowClock(), parseClock(plan.wake) ?? 0, localDate(), plannedBedtime(plan, log, cur));
+}
+
 function currentNight(plan) {
   return domainCurrentNight(nowClock(), parseClock(plan.wake) ?? 0, localDate());
 }
@@ -163,10 +168,10 @@ function renderHome() {
 
   // Morning check-in describes last night (the night whose evening was yesterday).
   const today = localDate();
-  const lastNight = addDays(today, -1);
+  const { nightDate: lastNight, morningDate: today2 } = logTarget(plan, log);
   const plannedLast = plannedBedtime(plan, log, lastNight);
   $('logPrompt').textContent = `Last night's plan was ${fmtClock(plannedLast)}. When did you actually fall asleep? Your best guess is fine.`;
-  const todayEntry = log.find(l => l.date === today);
+  const todayEntry = log.find(l => l.date === today2);
   const recent = log.slice(-5).reverse().map(l => `${fmtDate(addDays(l.date, -1))} ${l.slept}`).join(' · ');
   $('logInfo').textContent = todayEntry
     ? `Logged for last night: fell asleep ${todayEntry.slept}${todayEntry.onTime ? ' · on time' : ' · later than planned. Tonight still counts.'}` +
@@ -179,8 +184,7 @@ function renderHome() {
 $('saveLog').onclick = () => {
   const v = $('slept').value;
   if (!state.plan || parseClock(v) === null) { $('slept').focus(); return; }
-  const date = localDate();
-  const nightDate = addDays(date, -1);
+  const { nightDate, morningDate: date } = logTarget(state.plan, state.log);
   // onTime is judged against the plan as it stood *before* this entry is added.
   const onTime = isOnTime(parseClock(v), plannedBedtime(state.plan, state.log, nightDate));
   state.log = state.log.filter(l => l.date !== date).concat([{ date, slept: v, onTime }]);

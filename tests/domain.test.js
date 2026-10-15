@@ -2,6 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   currentNight,
+  logNight,
   parseClock, fmtClock, nightMin, localDate, addDays, dayDiff, validatePlan,
   plannedBedtime, windDownStart, nightsRemaining, sleepOpportunity, opportunityCheck,
   sleepRemaining, isOnTime, chartData, skyData,
@@ -306,5 +307,33 @@ describe('currentNight', () => {
   });
   test('evening: today, plain clock minutes', () => {
     assert.deepEqual(currentNight(1380, 540, '2026-10-14'), { nightDate: '2026-10-14', nowRef: 1380, inNight: false });
+  });
+});
+
+describe('logNight', () => {
+  test('02:00 before a 05:00 bedtime: last night is the night before the one in progress', () => {
+    const r = logNight(120, 540, '2026-10-14', 1740);
+    assert.deepEqual(r, { nightDate: '2026-10-12', morningDate: '2026-10-13' });
+  });
+  test('06:30 after a 05:00 bedtime, before wake: the night in progress', () => {
+    assert.deepEqual(logNight(390, 540, '2026-10-14', 1740), { nightDate: '2026-10-13', morningDate: '2026-10-14' });
+  });
+  test('10:00 after wake: last night', () => {
+    assert.deepEqual(logNight(600, 540, '2026-10-14', 1470), { nightDate: '2026-10-13', morningDate: '2026-10-14' });
+  });
+  test('evening: last night', () => {
+    assert.deepEqual(logNight(1380, 540, '2026-10-14', 1470), { nightDate: '2026-10-13', morningDate: '2026-10-14' });
+  });
+});
+
+describe('validatePlan wake ordering', () => {
+  test('wake before the goal bedtime is rejected', () => {
+    assert.equal(validatePlan({ cur: '05:30', goal: '02:00', wake: '01:00', step: 30 }).ok, false);
+  });
+  test('wake before the current bedtime is rejected', () => {
+    assert.equal(validatePlan({ cur: '05:30', goal: '00:30', wake: '04:00', step: 30 }).ok, false);
+  });
+  test('normal morning wake is fine', () => {
+    assert.equal(validatePlan({ cur: '05:30', goal: '00:30', wake: '09:00', step: 30 }).ok, true);
   });
 });
