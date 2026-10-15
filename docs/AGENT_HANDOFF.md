@@ -205,3 +205,11 @@ Not exercised: the 20-min audio fade (code reviewed; `?fade=0.2` hook exists), a
 ## 2026-10-14 — Agent 01 (Fable 5.1): Agent 05 merged, review defects fixed
 
 Fast-forwarded `fc1f2ea` (sw v3, manifest colours, 6 integration tests, release report). Then `3fc7190`: inert shell under overlays (Major), contrast, alarm grace, hours formatting, alarm focus; cache v4. Open: Note #6 (rem-based sizing) → Agent 02 next round. All five cards have run. `main` ready to push on the owner's approval.
+
+---
+## 2026-10-14 — Agent 02 (Fable 5.1), round 2: rem-based type (Release Note #6)
+
+- `app.css` only: every `font-size` (and the body `font:` shorthand) converted from px to rem at a 16 px root — 17px → 1.0625rem, 15px → 0.9375rem, 13px → 0.8125rem, 58px → 3.625rem, etc. Visual sizes at the default root are unchanged (computed: body 17px, h1 24px, label 15px, `#dark .t` 40px). Inputs/selects/buttons stay at 1.0625rem (≥ 1rem, no iOS zoom). Spacing, radii and tap targets untouched. `.topbar` gained `flex-wrap: wrap` because at 200 % root size the title + Progress/Settings nav overflowed a 375 px viewport by ~106 px; at the default size it still renders on one line.
+- Commands: `node --test` → 66 pass / 0 fail. Served `python3 -m http.server 8431` from `~/Documents/MyMind` (stopped afterwards); built-in browser at 375×812: setup, home, settings and the dark screen look unchanged; `document.documentElement.style.fontSize='200%'` on home → body 34px, big clock 116px, `scrollWidth` 375 (no horizontal overflow, nav wraps under the title). Test localStorage removed.
+- **For Agent 05**: `app.css` changed → bump `CACHE` in `sw.js` (v4 → v5) and move `PREVIOUS_CACHE` in `tests/integration.test.js`. Not edited here.
+- Open: none from this round.
