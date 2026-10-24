@@ -195,6 +195,16 @@ summary { cursor: pointer; color: var(--dim); font-size: 0.9375rem; min-height: 
 .setting input[type="checkbox"] { width: 26px; height: 26px; min-height: 0; flex: none; accent-color: var(--accent); padding: 0; }
 .status { color: var(--dim); font-size: 0.875rem; margin-top: 10px; min-height: 1.2em; }
 
+/* ---- phone setup ---- */
+button.link.inline { display: block; width: auto; margin: 10px auto 0; padding: 10px 12px; }
+.steps { margin: 0; padding: 0 0 0 1.5rem; color: var(--dim); font-size: 0.9375rem; }
+.steps li { padding: 6px 0; line-height: 1.5; }
+.steps li + li { border-top: 1px solid var(--line); }
+.steps li::marker { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+.steps b { color: var(--text); }
+.steps i { font-style: normal; color: var(--text); }
+.steps .t-wind, .steps .t-wake { color: var(--accent); font-variant-numeric: tabular-nums; }
+
 /* ---- countdown state ---- */
 #countdown { font-variant-numeric: tabular-nums; }
 #countdown.soon { color: var(--accent); }

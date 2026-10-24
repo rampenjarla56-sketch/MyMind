@@ -12,7 +12,11 @@ import * as storage from './storage.js';
 import { startWindDown, openCant, openTempted } from './night.js';
 
 const $ = id => document.getElementById(id);
-const SHELL = ['setup', 'home', 'progress', 'settings'];
+const SHELL = ['setup', 'home', 'progress', 'settings', 'phone'];
+// Phone-setup choice + "done" flag. storage.js normalises prefs to a fixed set of
+// keys, so these two UI-only bits live under their own key, never inside mymind.v2.
+const PHONE_KEY = 'mymind.phone';
+const PHONE_KINDS = ['ios', 'android'];
 const REMIND_BEFORE_MIN = 10;
 
 let state = storage.load();
@@ -46,7 +50,7 @@ function fmtDate(dateStr) {
 function persist() { storage.save(state); state = storage.load(); }
 
 // ---- navigation ----
-const render = { setup: renderSetup, home: renderHome, progress: renderProgress, settings: renderSettings };
+const render = { setup: renderSetup, home: renderHome, progress: renderProgress, settings: renderSettings, phone: renderPhone };
 function go(screen) {
   if (!SHELL.includes(screen)) screen = state.plan ? 'home' : 'setup';
   if (screen !== 'setup' && !state.plan) screen = 'setup';
@@ -185,6 +189,7 @@ function renderHome() {
       (recent ? `\nRecent: ${recent}` : '')
     : (recent ? `Recent: ${recent}` : '');
 
+  $('phoneHomeLink').classList.toggle('hide', loadPhone().done);
   tick();
 }
 
@@ -271,6 +276,60 @@ $('tempted').onclick = () => openTempted();
 $('cantHome').onclick = () => openCant();
 $('toProgress').onclick = () => go('progress');
 $('toSettings').onclick = () => go('settings');
+$('phoneHomeLink').onclick = () => go('phone');
+
+// =============================================================================
+// PHONE SETUP (scroll guard: the phone's own Downtime / Bedtime mode)
+// =============================================================================
+function loadPhone() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(PHONE_KEY) || 'null');
+    const kind = raw && PHONE_KINDS.includes(raw.kind) ? raw.kind : null;
+    return { kind, done: !!(raw && raw.done === true) };
+  } catch { return { kind: null, done: false }; }
+}
+function savePhone(next) {
+  try { localStorage.setItem(PHONE_KEY, JSON.stringify(next)); } catch { /* private mode: choice just won't stick */ }
+}
+
+function renderPhone() {
+  const ph = loadPhone();
+  const { plan, log } = state;
+  const { nightDate } = currentNight(plan);
+  const planned = plannedBedtime(plan, log, nightDate);
+  const wind = planned === null ? null : fmtClock(windDownStart(planned));
+
+  document.querySelectorAll('[data-phone]').forEach(b => {
+    const on = b.dataset.phone === ph.kind;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  $('phoneIos').hidden = ph.kind !== 'ios';
+  $('phoneAndroid').hidden = ph.kind !== 'android';
+  $('phoneFoot').hidden = ph.kind === null;
+
+  $('phoneTimes').textContent = ph.kind === null
+    ? 'Pick your phone and the steps appear, with tonight\'s times already filled in.'
+    : wind
+      ? `Tonight: schedule from ${wind} (wind-down) to ${plan.wake} (wake). These follow your plan night by night.`
+      : `Schedule to end at ${plan.wake}, your wake time.`;
+  document.querySelectorAll('.t-wind').forEach(el => { el.textContent = wind || '--:--'; });
+  document.querySelectorAll('.t-wake').forEach(el => { el.textContent = plan.wake; });
+
+  $('phoneDone').classList.toggle('hide', ph.done);
+  $('phoneUndone').classList.toggle('hide', !ph.done);
+  $('phoneStatus').textContent = ph.done
+    ? 'Marked as set up. The home-screen link is tucked away; this page stays here in Settings.'
+    : '';
+}
+
+document.querySelectorAll('[data-phone]').forEach(b => b.onclick = () => {
+  savePhone({ ...loadPhone(), kind: b.dataset.phone });
+  renderPhone();
+});
+$('phoneDone').onclick = () => { savePhone({ ...loadPhone(), done: true }); renderPhone(); $('phoneUndone').focus(); };
+$('phoneUndone').onclick = () => { savePhone({ ...loadPhone(), done: false }); renderPhone(); $('phoneDone').focus(); };
+$('phoneBack').onclick = () => go('home');
 
 // =============================================================================
 // PROGRESS
@@ -378,6 +437,7 @@ function renderSettings() {
 
 $('settingsBack').onclick = () => go('home');
 $('editPlan').onclick = () => go('setup');
+$('phoneSetupBtn').onclick = () => go('phone');
 document.querySelectorAll('[data-pref-sound]').forEach(b => b.onclick = () => {
   state.prefs.sound = b.dataset.prefSound;
   persist();
@@ -424,6 +484,7 @@ $('resetNo').onclick = () => dlg.close();
 $('resetYes').onclick = () => { dlg.close(); doReset(); };
 function doReset() {
   storage.reset();
+  try { localStorage.removeItem(PHONE_KEY); } catch { /* ignore */ }
   state = storage.load();
   remindedFor = null;
   $('dataStatus').textContent = '';

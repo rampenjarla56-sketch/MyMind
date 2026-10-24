@@ -69,6 +69,7 @@
       <button type="button" class="quiet" id="tempted">I'm tempted</button>
       <button type="button" class="quiet" id="cantHome">I can't sleep</button>
     </div>
+    <button type="button" class="link inline" id="phoneHomeLink">Set up your phone to help at night →</button>
   </div>
   <div class="card">
     <h2>Morning check-in</h2>
@@ -139,6 +140,8 @@
       <label class="l" for="prefRemind">Remind me 10 min before wind-down<small>Only while this page is open. Uses a notification if you allow one, otherwise a quiet cue on the home screen.</small></label>
       <input type="checkbox" id="prefRemind">
     </div>
+    <button type="button" class="ghost" id="phoneSetupBtn">Set up my phone</button>
+    <p class="field-note">Your phone's own Downtime or Bedtime mode can hold the feeds shut. One-time setup, in the phone's settings.</p>
   </div>
   <div class="card">
     <h2>Your data</h2>
@@ -154,6 +157,53 @@
     <p class="dim">MyMind helps build a consistent bedtime. It is not medical advice and not a medical device. Sleep onset is your own estimate, never measured.</p>
     <p class="dim">If sleep trouble lasts for weeks, or you feel low or anxious, talk to a parent or doctor.</p>
     <p class="faint">Free, offline, no ads. The in-app alarm and reminders only work while the page is open.</p>
+  </div>
+</section>
+
+<!-- PHONE SETUP (scroll guard: the phone's own tools) -->
+<section id="phone" class="screen hide" aria-labelledby="phoneTitle">
+  <div class="topbar">
+    <h1 id="phoneTitle">Phone setup</h1>
+    <nav class="nav" aria-label="Sections"><button type="button" class="link" id="phoneBack">Home</button></nav>
+  </div>
+  <p class="lead">MyMind can't close other apps. Your phone can. Set this up once and the feeds go quiet on their own every night.</p>
+  <div class="card">
+    <h3 id="phoneKindLabel">Which phone?</h3>
+    <div class="seg" role="group" aria-labelledby="phoneKindLabel">
+      <button type="button" data-phone="ios" aria-pressed="false">iPhone</button>
+      <button type="button" data-phone="android" aria-pressed="false">Android</button>
+    </div>
+    <p class="dim" id="phoneTimes" aria-live="polite" style="margin-top:14px"></p>
+  </div>
+
+  <div class="card" id="phoneIos" hidden>
+    <h2>iPhone</h2>
+    <ol class="steps">
+      <li><b>Downtime.</b> Settings → Screen Time → Downtime. Turn on <i>Scheduled</i>, every day, from <b class="t-wind">--:--</b> to <b class="t-wake">--:--</b>. That's your wind-down start to your wake time.</li>
+      <li><b>Always Allowed.</b> Settings → Screen Time → Always Allowed. Keep only Phone, Messages and Clock. Everything else goes dark during Downtime.</li>
+      <li><b>App Limits.</b> Settings → Screen Time → App Limits → Add Limit. Pick the two or three feeds that keep you up the most and give them a daily limit you'd actually accept.</li>
+      <li><b>Sleep Focus.</b> Settings → Focus → Sleep. Turn on the schedule with the same times, so notifications stay silent too.</li>
+      <li><b>Charger across the room.</b> Not a setting, but the one that works. The phone sleeps where you can't reach it from bed.</li>
+    </ol>
+  </div>
+
+  <div class="card" id="phoneAndroid" hidden>
+    <h2>Android</h2>
+    <ol class="steps">
+      <li><b>Bedtime mode.</b> Settings → Digital Wellbeing → Bedtime mode. Use a schedule, every day, from <b class="t-wind">--:--</b> to <b class="t-wake">--:--</b>. That's your wind-down start to your wake time.</li>
+      <li><b>Grayscale.</b> In Bedtime mode, turn on <i>Grayscale</i>. A grey feed is a boring feed; most people stop scrolling without trying.</li>
+      <li><b>Focus mode.</b> Settings → Digital Wellbeing → Focus mode. Add the apps that keep you up and set the same schedule.</li>
+      <li><b>App timers.</b> Settings → Digital Wellbeing → Dashboard. Tap the hourglass next to each feed and give it a daily limit you'd actually accept.</li>
+      <li><b>Charger across the room.</b> Not a setting, but the one that works. The phone sleeps where you can't reach it from bed.</li>
+    </ol>
+    <p class="field-note">Menu names vary a little by brand (Samsung calls it Modes and Routines → Sleep). Search Settings for "bedtime" if you don't see it.</p>
+  </div>
+
+  <div class="card" id="phoneFoot" hidden>
+    <p class="dim">These are your phone's own tools. MyMind never sees, blocks or controls other apps, and can't tell whether you set this up. The times above follow your plan, so if your bedtime moves, nudge the schedule earlier now and then.</p>
+    <button type="button" id="phoneDone">Done, it's set up</button>
+    <button type="button" class="ghost hide" id="phoneUndone">Show the home-screen link again</button>
+    <p class="status" id="phoneStatus" aria-live="polite"></p>
   </div>
 </section>
 

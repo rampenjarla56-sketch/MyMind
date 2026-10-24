@@ -223,3 +223,27 @@ Files changed: `src/domain.js` (`isOnTime` now also rejects actuals more than `O
 Commands: `node --check` on src/app.js, night.js, domain.js, storage.js — clean; `node --test` — 75 pass, 0 fail. Browser at 375 px (local server): HOLD line rendered with a seeded late night; can't-sleep from home → "Back home" returns to home with `#dark` hidden; wind-down started 4 h early → settle step shows the early line on the near-black sheet. Finding 6 (alarm under a sheet) verified by code path only: the wake window needs a morning clock and the check ran at 23:50 local, so the live ring was not reproduced.
 **Agent 05:** bump `sw.js` CACHE v6 → v7 (index.html, app.css, src/app.js, src/night.js, src/domain.js changed). Not edited here.
 Open: none new. Finding 4 (alarm LFO loudness) and 5 (focus after dismiss) untouched.
+
+---
+
+## Agent 02 — v0.3 scroll-guard "Phone setup" screen (2026-10-24)
+
+**Files changed:** `index.html` (new `#phone` section after Settings; `#phoneHomeLink` under the home hero actions; `#phoneSetupBtn` ghost button + note in Settings → Night), `app.css` (`.steps` numbered list, `button.link.inline`), `src/app.js` (`phone` added to `SHELL`; `renderPhone`, `loadPhone`/`savePhone`, wiring; `doReset` also clears the phone key). No night-region or sw.js edits.
+
+**What it does:** Two segments (iPhone / Android) show five short numbered steps each: Downtime / Bedtime mode scheduled from the wind-down start to the wake time, Always Allowed (Phone, Messages, Clock), App Limits / app timers, Sleep Focus / Focus mode, grayscale (Android), charger across the room. The two schedule times come live from domain: `windDownStart(plannedBedtime(plan, log, currentNight(...).nightDate))` and `plan.wake`, recomputed on every render so they track the plan night by night. Footer is honest: these are the phone's own tools; MyMind never sees, blocks or controls other apps and can't tell whether it was set up. Plain text only, no deep links, no images, no external links.
+
+**Persistence (interface note):** `storage.normalizePrefs` whitelists `sound/voice/remind` and drops anything else, so the platform choice and the "Done, it's set up" flag are NOT in `mymind.v2`. They live under a separate localStorage key **`mymind.phone`** = `{ kind: 'ios'|'android'|null, done: boolean }`, read/written only in `src/app.js` with try/catch. Export/import does not carry it (it is a UI convenience, not user data). "Reset my data" clears it. If Agent 03 wants it inside prefs, add `phone: 'ios'|'android'|null` + `phoneDone: boolean` to `normalizePrefs` and I will move it over.
+
+**Links:** Settings → Night → "Set up my phone" (always). Home → "Set up your phone to help at night →" under the primary actions, hidden once Done is tapped; the phone screen has a "Show the home-screen link again" ghost button to undo.
+
+**For Agent 04:** wind-down step 1 (phone away) in `src/night.js` could mention the Phone setup screen in one line ("Downtime set up? Settings → Set up my phone"). Not edited by me.
+
+**For Agent 05:** shipped files changed (`index.html`, `app.css`, `src/app.js`) → bump `sw.js` CACHE v7 → v8. No new files to precache.
+
+**Commands run:**
+- `node --check src/app.js` → OK
+- `node --test` → 75 pass, 0 fail
+- `python3 -m http.server 8434` + built-in browser at 375×812: seeded `mymind.v2` plan (cur 05:30 → goal 00:30, wake 09:00, step 30, start 2026-10-20). Verified: home link present; phone screen opens; iPhone tab shows "from 03:30 to 09:00" (tonight's planned 04:00 − 30 min, wake 09:00) in both the summary line and step 1; Android tab the same; "Done, it's set up" writes `{"kind":"android","done":true}`, Home then hides the link (`phoneHomeLink.hide === true`); Settings "Set up my phone" opens the screen; all controls are native `<button>`s (keyboard-operable), smallest visible target 44.5 px. No animations added (reduced-motion safe by construction). localStorage cleared, viewport reset, server stopped afterwards.
+- Screenshots: `/private/tmp/claude-501/-Users-rampenjarla-Documents-MyMind-MyMind/879977b5-e368-49ab-8248-9873c353049d/scratchpad/phone-ios-375.jpg`, `.../phone-android-375.jpg`.
+
+**Open issues:** none known. Menu paths are described generically (iOS Screen Time / Android Digital Wellbeing, Samsung note); they are not deep links and may drift with OS versions.
