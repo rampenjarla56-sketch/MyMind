@@ -1,5 +1,12 @@
 # RESUME
-Updated: 2026-10-14 (later the same night: repo recovery + agent foundation)
+Updated: 2026-10-24
+
+## Latest (v0.3 shipped)
+- `main` at `01611bd`, pushed; cache `mymind-v9`; 76 tests. New **Phone setup** screen (iPhone Screen Time Downtime / Android Digital Wellbeing Bedtime mode, live downtime window from the plan), linked from Settings, Home (until marked done) and wind-down step 1. Phone choice lives in `prefs.phone/phoneDone`.
+- QA round 2 (`Review/qa-round2-2026-10-14.md`): all Majors and Minors closed. Open Notes only: star hash collisions (cosmetic), silent storage-write failure, three wording softenings.
+- Still untested on a physical phone. Next real step: owner installs from Pages and logs a night; then the "Earlier" rename decision and marketing drafts (`Design/marketing/`).
+- Local preview: `python3 -m http.server 8430 --directory ~/Documents/MyMind` → `/MyMind/` (the app's preview tool serves a stale folder).
+
 
 ## Latest (M1–M5 complete — all five agents ran, 2026-10-14)
 - `main` at `3fc7190`: domain engine + storage (Agent 03, tests), shell split with design system/onboarding/progress/settings (Agent 02), timed resumable night experience (Agent 04), PWA cache v4 + integration tests + `docs/RELEASE_REPORT.md` (Agent 05), lead fixes for the review's Major (inert overlays) and minors. `node --test` → 66 pass.
