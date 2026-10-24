@@ -21,7 +21,7 @@ export const KEY_CORRUPT = 'mymind.corrupt';
 const SOUNDS = ['off', 'rain', 'deep'];
 
 export function freshState() {
-  return { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false }, windDown: null };
+  return { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false, phone: null, phoneDone: false }, windDown: null };
 }
 
 // In-progress wind-down so a refresh mid-routine can resume. Owned by night.js.
@@ -68,6 +68,8 @@ function normalizePrefs(p) {
     sound: SOUNDS.includes(p.sound) ? p.sound : d.sound,
     voice: typeof p.voice === 'boolean' ? p.voice : d.voice,
     remind: typeof p.remind === 'boolean' ? p.remind : d.remind,
+    phone: p.phone === 'ios' || p.phone === 'android' ? p.phone : null,
+    phoneDone: p.phoneDone === true,
   };
 }
 

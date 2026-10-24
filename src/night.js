@@ -154,7 +154,7 @@ function renderStep() {
 const STEPS = [
   () => `<h2 id="windTitle">Phone away from bed</h2>
     <p>Plug it in across the room, or outside the bedroom. Do Not Disturb on. If you need an alarm, set it now — a normal one, not just this app.</p>
-    <p class="dim">Close every feed. Anything still open is tomorrow's problem.</p>
+    <p class="dim">Close every feed. Anything still open is tomorrow's problem. (Settings → Set up my phone can make the phone do this for you.)</p>
     <button type="button" data-next>Done, it's across the room</button>`,
   () => `<h2 id="windTitle">Empty your head</h2>
     <p class="dim">Worries, to-dos, ideas — write them here so they stop circling. Nothing is saved or sent; it's gone when you move on.</p>

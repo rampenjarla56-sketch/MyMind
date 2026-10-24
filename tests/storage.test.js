@@ -10,7 +10,7 @@ class MockStorage {
 }
 
 const plan = { cur: '05:30', goal: '00:30', wake: '09:00', step: 30, start: '2026-10-01', alarm: true };
-const FRESH = { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false }, windDown: null };
+const FRESH = { v: 2, plan: null, log: [], prefs: { sound: 'off', voice: false, remind: false, phone: null, phoneDone: false }, windDown: null };
 let store, S;
 beforeEach(() => { store = new MockStorage(); S = createStorage(store); });
 
@@ -65,14 +65,14 @@ describe('load', () => {
     assert.deepEqual(S.load(), FRESH);
     store.setItem(KEY, JSON.stringify({ v: 2, plan: null, log: [{ date: '2026-10-02', slept: '05:45' }, { date: 'bad' }, null], prefs: { sound: 'rain', voice: true, remind: true } }));
     const st = S.load();
-    assert.deepEqual(st.prefs, { sound: 'rain', voice: true, remind: true });
+    assert.deepEqual(st.prefs, { sound: 'rain', voice: true, remind: true, phone: null, phoneDone: false });
     assert.deepEqual(st.log, [{ date: '2026-10-02', slept: '05:45', onTime: false }]); // no plan → cannot have been on time
   });
 });
 
 describe('save / reset / export / import', () => {
   test('save → load round-trip', () => {
-    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'deep', voice: true, remind: false }, windDown: null };
+    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'deep', voice: true, remind: false, phone: 'ios', phoneDone: true }, windDown: null };
     S.save(st);
     assert.deepEqual(S.load(), st);
     assert.equal(typeof store.getItem(KEY), 'string');
@@ -97,7 +97,7 @@ describe('save / reset / export / import', () => {
     assert.deepEqual(S.load(), FRESH);
   });
   test('export → import round-trip into another store', () => {
-    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'rain', voice: false, remind: true }, windDown: null };
+    const st = { v: 2, plan, log: [{ date: '2026-10-02', slept: '05:45', onTime: true }], prefs: { sound: 'rain', voice: false, remind: true, phone: null, phoneDone: false }, windDown: null };
     S.save(st);
     const json = S.exportJSON();
     assert.deepEqual(JSON.parse(json), st);
@@ -154,5 +154,16 @@ describe('windDown resume state', () => {
     const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
     const st = s.load(); st.windDown = { startedAt: 'x', stepIndex: -1 }; s.save(st);
     assert.equal(s.load().windDown, null);
+  });
+});
+
+describe('phone prefs', () => {
+  test('phone kind and done flag persist; garbage is normalised', () => {
+    const store = new Map();
+    const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
+    const st = s.load(); st.prefs.phone = 'android'; st.prefs.phoneDone = true; s.save(st);
+    assert.deepEqual([s.load().prefs.phone, s.load().prefs.phoneDone], ['android', true]);
+    st.prefs.phone = 'blackberry'; st.prefs.phoneDone = 'yes'; s.save(st);
+    assert.deepEqual([s.load().prefs.phone, s.load().prefs.phoneDone], [null, false]);
   });
 });

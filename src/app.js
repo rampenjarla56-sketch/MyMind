@@ -282,14 +282,15 @@ $('phoneHomeLink').onclick = () => go('phone');
 // PHONE SETUP (scroll guard: the phone's own Downtime / Bedtime mode)
 // =============================================================================
 function loadPhone() {
+  // One-time migration from the side key the first version of this screen used.
   try {
     const raw = JSON.parse(localStorage.getItem(PHONE_KEY) || 'null');
-    const kind = raw && PHONE_KINDS.includes(raw.kind) ? raw.kind : null;
-    return { kind, done: !!(raw && raw.done === true) };
-  } catch { return { kind: null, done: false }; }
+    if (raw) { state.prefs.phone = PHONE_KINDS.includes(raw.kind) ? raw.kind : null; state.prefs.phoneDone = raw.done === true; persist(); localStorage.removeItem(PHONE_KEY); }
+  } catch { /* ignore */ }
+  return { kind: state.prefs.phone, done: state.prefs.phoneDone };
 }
 function savePhone(next) {
-  try { localStorage.setItem(PHONE_KEY, JSON.stringify(next)); } catch { /* private mode: choice just won't stick */ }
+  state.prefs.phone = next.kind; state.prefs.phoneDone = !!next.done; persist();
 }
 
 function renderPhone() {

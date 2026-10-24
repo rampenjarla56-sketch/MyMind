@@ -247,3 +247,7 @@ Open: none new. Finding 4 (alarm LFO loudness) and 5 (focus after dismiss) untou
 - Screenshots: `/private/tmp/claude-501/-Users-rampenjarla-Documents-MyMind-MyMind/879977b5-e368-49ab-8248-9873c353049d/scratchpad/phone-ios-375.jpg`, `.../phone-android-375.jpg`.
 
 **Open issues:** none known. Menu paths are described generically (iOS Screen Time / Android Digital Wellbeing, Samsung note); they are not deep links and may drift with OS versions.
+
+---
+## 2026-10-24 — Agent 01 (Fable 5.1): v0.3 follow-ups
+Phone choice/done flag moved from the `mymind.phone` side key into `prefs.phone` / `prefs.phoneDone` (storage normalises them; one-time migration in `app.js` `loadPhone`). Wind-down step 1 now points at Settings → Set up my phone. Cache `mymind-v9`. 76 tests.
