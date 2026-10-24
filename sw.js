@@ -1,7 +1,7 @@
 // MyMind service worker: offline-first for the app shell.
 // Bump CACHE whenever any shipped file changes (tests/integration.test.js checks
 // the precache list against disk and that the name moved on from the last tag).
-const CACHE = 'mymind-v7';
+const CACHE = 'mymind-v8';
 const ASSETS = [
   './',
   './index.html',
