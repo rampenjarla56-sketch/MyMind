@@ -284,10 +284,11 @@ button.link.inline { display: block; width: auto; margin: 10px auto 0; padding: 
 #stepBox .seg { margin-top: 10px; }
 #stepBox .seg button { font-size: 0.875rem; }
 
-/* breathing: orb (scales) + a thin JS-driven bar (also the reduced-motion cue) */
-.bar { height: 4px; border-radius: 2px; background: #232a40; margin: -20px auto 10px; max-width: 220px; overflow: hidden; }
+/* breathing: orb (scales) + a thin JS-driven bar (also the reduced-motion cue).
+   The orb grows to 1.35× (+28 px each side) — keep the bar clear of it. */
+.bar { height: 4px; border-radius: 2px; background: #232a40; margin: 0 auto 10px; max-width: 220px; overflow: hidden; }
 .bar i { display: block; height: 100%; width: 0; background: var(--accent); }
-.breath { color: var(--text); font-size: 1.0625rem; }
+.breath { color: var(--text); font-size: 1.0625rem; margin: 40px auto 44px; }
 
 /* body scan: the current line, plus the whole script always visible */
 .relax-now { font-size: 1.1875rem; color: var(--text); min-height: 3em; }
@@ -308,7 +309,8 @@ button.link.inline { display: block; width: auto; margin: 10px auto 0; padding: 
 #dark [data-snd][aria-pressed="true"] { color: #8a8a8a; border-color: #5a4b31; background: #0d0d0d; }
 #dark .t:focus-visible { outline-color: #5a4b31; }
 
-/* morning wake prompt */
+/* morning wake prompt: while it rings, the night controls step aside */
+#dark.waking .seg, #dark.waking .snd-info, #dark.waking #cantBtn, #dark.waking #temptedDark, #dark.waking #darkHome { display: none; }
 #alarmBox { margin-top: 28px; max-width: 320px; }
 #dark .wake-title { color: #9c7f4e; font-size: 1.375rem; margin-bottom: 8px; }
 #dark .wake-text { color: #7d7a6e; font-size: 0.875rem; margin: 0 0 10px; }

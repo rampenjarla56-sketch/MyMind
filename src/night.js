@@ -44,15 +44,20 @@ function bedtimeEpoch() {
 // Step i runs from anchor + CUM[i] to anchor + CUM[i+1]. On every step change
 // the anchor is re-set so the new step starts *now* with its full length;
 // finishing early therefore pulls the anchor earlier and the settle step
-// absorbs the remainder up to the planned bedtime. Lights-out happens at
-// max(planned bedtime, anchor + 30 min) or on "Lights out", whichever first.
+// absorbs the remainder up to the planned bedtime. Lights-out time is fixed
+// ONCE at wind-down start: `lightsOut` = max(planned bedtime, start + 30 min);
+// skipping forward re-anchors the per-step "time left" but never moves the
+// "Lights out at HH:MM" footer. Late start (planned bedtime already passed):
+// the steps keep their normal lengths, `lightsOut` = start, the footer says so,
+// and the settle step goes dark the moment it is reached. (Storage persists
+// only { startedAt, stepIndex }, so a resume recomputes lightsOut from them.)
 // =============================================================================
 const STEP_MIN = [3, 7, 5, 8, 7];
 const CUM = STEP_MIN.reduce((a, m) => (a.push(a[a.length - 1] + m), a), [0]); // [0,3,10,15,23,30]
 const STEP_NAME = ['Phone away', 'Empty your head', 'Slow breathing', 'Relax your body', 'Settle'];
 const AUTO_ADVANCE = [true, false, true, true, false]; // brain dump waits for you; settle ends in the dark
 
-let wd = null;           // { anchor, step } while a wind-down is live
+let wd = null;           // { anchor, step, lightsOut, late } while a wind-down is live
 let wdTimer = null;      // 1 s tick while the sheet is open
 let stepCleanup = null;  // tears down the current step's timers/voice
 
@@ -63,11 +68,18 @@ function persistWind(value) {
 }
 
 function stepEndsAt() { return wd.anchor + CUM[wd.step + 1] * 60000; }
-function darkAt() { const b = bedtimeEpoch(); const end = wd.anchor + CUM[5] * 60000; return b === null ? end : Math.max(b, end); }
+function darkAt() { return wd.lightsOut; }
+// Fixed at start (see the timing model above). `late` = bedtime had already passed.
+function lightsOutFor(startedAt) {
+  const b = bedtimeEpoch(), end = startedAt + CUM[5] * 60000;
+  const late = b !== null && b <= startedAt;
+  return { lightsOut: late ? startedAt : (b === null ? end : Math.max(b, end)), late };
+}
 
 export function startWindDown() {
   closePanic(); closeCant(); leaveDark();
-  wd = { anchor: Date.now(), step: 0 };
+  const now = Date.now();
+  wd = { anchor: now, step: 0, ...lightsOutFor(now) };
   persistWind({ startedAt: wd.anchor, stepIndex: 0 });
   showWind();
 }
@@ -77,7 +89,7 @@ function resumeWindDown() {
   const saved = mm.state.windDown;
   if (!saved) return;
   if (Date.now() - saved.startedAt > RESUME_MAX_MS || saved.stepIndex > 4) { persistWind(null); return; }
-  wd = { anchor: saved.startedAt, step: saved.stepIndex };
+  wd = { anchor: saved.startedAt, step: saved.stepIndex, ...lightsOutFor(saved.startedAt) };
   showWind();
 }
 
@@ -134,7 +146,9 @@ function windTick() {
   if (!last) $('wind').classList.remove('black');
   const bed = bedtimeEpoch();
   const at = new Date(darkAt());
-  $('windBed').textContent = bed === null ? '' : `Lights out at ${fmtClock(at.getHours() * 60 + at.getMinutes())}.`;
+  $('windBed').textContent = bed === null ? ''
+    : wd.late ? 'Lights out now — you\'re past bedtime; tap when ready.'
+    : `Lights out at ${fmtClock(at.getHours() * 60 + at.getMinutes())}.`;
 }
 
 function renderStep() {
@@ -342,7 +356,7 @@ export function goDark() {
   if (wd) finishWind();
   clearInterval(clockTimer); darkOpenedAt = Date.now();
   $('dark').classList.remove('hide');
-  $('alarmBox').classList.add('hide');
+  $('dark').classList.remove('waking'); $('alarmBox').classList.add('hide');
   if (snd) { markSound(snd.kind); } else {
     markSound('off');
     const pref = prefs().sound;
@@ -355,7 +369,7 @@ export function goDark() {
   try { const pr = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (pr && pr.catch) pr.catch(() => {}); } catch { /* ignore */ }
   focusEl($('darkClock'));
 }
-function leaveDark() { $('dark').classList.add('hide'); clearInterval(clockTimer); stopSound(); stopAlarm(); }
+function leaveDark() { $('dark').classList.add('hide'); $('dark').classList.remove('waking'); $('alarmBox').classList.add('hide'); clearInterval(clockTimer); stopSound(); stopAlarm(); }
 function exitFs() { try { const pr = document.fullscreenElement && document.exitFullscreen && document.exitFullscreen(); if (pr && pr.catch) pr.catch(() => {}); } catch { /* ignore */ } }
 function toHome() { leaveDark(); exitFs(); MM().go('home'); }
 $('darkHome').onclick = toHome;
@@ -370,6 +384,7 @@ function checkAlarm() {
 }
 function ringAlarm() {
   closePanic(); closeCant(); // the wake form must not appear underneath an open sheet
+  $('dark').classList.add('waking'); // night controls step aside; the clock and the wake form stand alone
   $('alarmBox').classList.remove('hide');
   $('curtainsDone').checked = false; $('alarmInput').value = ''; $('alarmHint').textContent = '';
   focusEl($('curtainsDone'));
