@@ -1,7 +1,10 @@
 # RESUME
-Updated: 2026-10-24
+Updated: 2026-10-25
 
-## Latest (v0.3 shipped)
+## Latest
+- 2026-10-25: live-render review round — breathing orb clearance, late-start wind-down goes straight to lights-out with a stable footer time (now persisted across refresh), alarm form stands alone on the dark screen. Cache `mymind-v11`, 77 tests. No open findings.
+
+## v0.3 shipped (2026-10-24)
 - `main` at `01611bd`, pushed; cache `mymind-v9`; 76 tests. New **Phone setup** screen (iPhone Screen Time Downtime / Android Digital Wellbeing Bedtime mode, live downtime window from the plan), linked from Settings, Home (until marked done) and wind-down step 1. Phone choice lives in `prefs.phone/phoneDone`.
 - QA round 2 (`Review/qa-round2-2026-10-14.md`): all Majors and Minors closed. Open Notes only: star hash collisions (cosmetic), silent storage-write failure, three wording softenings.
 - Still untested on a physical phone. Next real step: owner installs from Pages and logs a night; then the "Earlier" rename decision and marketing drafts (`Design/marketing/`).
