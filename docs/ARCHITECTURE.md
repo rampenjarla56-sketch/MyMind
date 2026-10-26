@@ -59,7 +59,7 @@ save(state) -> void
 reset() -> void            // explicit user action only
 exportJSON() -> string     importJSON(str) -> { ok, errors }
 state = { v:2, plan|null, log:[], prefs:{ sound:'off'|'rain'|'deep', voice:boolean, remind:boolean },
-          windDown: { startedAt: epochMs, stepIndex: int } | null }   // in-progress wind-down for resume; night.js owns it
+          windDown: { startedAt: epochMs, stepIndex: int, lightsOut: epochMs|null } | null }   // in-progress wind-down for resume; night.js owns it. lightsOut fixed at start; null only for pre-v11 blobs
 ```
 
 ## UI contracts

@@ -6,7 +6,7 @@
 //   exports  startWindDown(), openCant(), openTempted(), goDark()
 //   reads    window.MyMind = { state, save, go, tick }
 // All clock/plan maths comes from ./domain.js; the only persistence is
-// MyMind.state.windDown = { startedAt, stepIndex } | null via MyMind.save().
+// MyMind.state.windDown = { startedAt, stepIndex, lightsOut } | null via MyMind.save().
 
 import { parseClock, fmtClock, localDate, plannedBedtime, sleepRemaining, currentNight } from './domain.js';
 
@@ -49,8 +49,9 @@ function bedtimeEpoch() {
 // skipping forward re-anchors the per-step "time left" but never moves the
 // "Lights out at HH:MM" footer. Late start (planned bedtime already passed):
 // the steps keep their normal lengths, `lightsOut` = start, the footer says so,
-// and the settle step goes dark the moment it is reached. (Storage persists
-// only { startedAt, stepIndex }, so a resume recomputes lightsOut from them.)
+// and the settle step goes dark the moment it is reached. Storage persists
+// { startedAt, stepIndex, lightsOut }, so a resume after a refresh keeps the
+// same footer time; only an old blob without lightsOut recomputes it.
 // =============================================================================
 const STEP_MIN = [3, 7, 5, 8, 7];
 const CUM = STEP_MIN.reduce((a, m) => (a.push(a[a.length - 1] + m), a), [0]); // [0,3,10,15,23,30]
@@ -66,6 +67,7 @@ function persistWind(value) {
   mm.state.windDown = value;
   mm.save();
 }
+const wdRecord = () => ({ startedAt: wd.anchor, stepIndex: wd.step, lightsOut: wd.lightsOut });
 
 function stepEndsAt() { return wd.anchor + CUM[wd.step + 1] * 60000; }
 function darkAt() { return wd.lightsOut; }
@@ -80,7 +82,7 @@ export function startWindDown() {
   closePanic(); closeCant(); leaveDark();
   const now = Date.now();
   wd = { anchor: now, step: 0, ...lightsOutFor(now) };
-  persistWind({ startedAt: wd.anchor, stepIndex: 0 });
+  persistWind(wdRecord());
   showWind();
 }
 
@@ -89,7 +91,10 @@ function resumeWindDown() {
   const saved = mm.state.windDown;
   if (!saved) return;
   if (Date.now() - saved.startedAt > RESUME_MAX_MS || saved.stepIndex > 4) { persistWind(null); return; }
-  wd = { anchor: saved.startedAt, step: saved.stepIndex, ...lightsOutFor(saved.startedAt) };
+  // Keep the lights-out time fixed at wind-down start across a refresh; recompute only for old blobs.
+  const fixed = lightsOutFor(saved.startedAt);
+  const lightsOut = typeof saved.lightsOut === 'number' ? saved.lightsOut : fixed.lightsOut;
+  wd = { anchor: saved.startedAt, step: saved.stepIndex, lightsOut, late: lightsOut <= saved.startedAt };
   showWind();
 }
 
@@ -104,7 +109,7 @@ function setStep(i) {
   if (i >= STEP_MIN.length) { finishWind(); goDark(); return; }
   wd.step = i;
   wd.anchor = Date.now() - CUM[i] * 60000; // the new step starts now, full length
-  persistWind({ startedAt: wd.anchor, stepIndex: i });
+  persistWind(wdRecord());
   renderStep();
 }
 const nextStep = () => setStep(wd.step + 1);

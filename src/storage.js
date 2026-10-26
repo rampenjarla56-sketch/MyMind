@@ -29,7 +29,9 @@ function normalizeWindDown(w) {
   if (!isObj(w)) return null;
   const startedAt = Number(w.startedAt), stepIndex = Number(w.stepIndex);
   if (!Number.isFinite(startedAt) || startedAt <= 0 || !Number.isInteger(stepIndex) || stepIndex < 0) return null;
-  return { startedAt, stepIndex };
+  // lightsOut (epoch ms) was added later; older blobs lack it → null and night.js recomputes.
+  const lightsOut = typeof w.lightsOut === 'number' && Number.isFinite(w.lightsOut) && w.lightsOut > 0 ? w.lightsOut : null;
+  return { startedAt, stepIndex, lightsOut };
 }
 
 function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }

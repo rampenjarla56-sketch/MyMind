@@ -147,7 +147,17 @@ describe('windDown resume state', () => {
     const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
     assert.equal(s.load().windDown, null);
     const st = s.load(); st.windDown = { startedAt: 1760000000000, stepIndex: 2 }; s.save(st);
-    assert.deepEqual(s.load().windDown, { startedAt: 1760000000000, stepIndex: 2 });
+    assert.deepEqual(s.load().windDown, { startedAt: 1760000000000, stepIndex: 2, lightsOut: null });
+  });
+  test('lightsOut round-trips; garbage lightsOut becomes null', () => {
+    const store = new Map();
+    const s = createStorage({ getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, v), removeItem: k => store.delete(k) });
+    const st = s.load(); st.windDown = { startedAt: 1760000000000, stepIndex: 1, lightsOut: 1760001800000 }; s.save(st);
+    assert.deepEqual(s.load().windDown, { startedAt: 1760000000000, stepIndex: 1, lightsOut: 1760001800000 });
+    for (const bad of ['soon', NaN, -5, 0, {}, true]) {
+      const st2 = s.load(); st2.windDown = { startedAt: 1760000000000, stepIndex: 1, lightsOut: bad }; s.save(st2);
+      assert.equal(s.load().windDown.lightsOut, null, `lightsOut=${String(bad)}`);
+    }
   });
   test('garbage windDown is dropped', () => {
     const store = new Map();

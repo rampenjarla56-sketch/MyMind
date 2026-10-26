@@ -266,3 +266,14 @@ Phone choice/done flag moved from the `mymind.phone` side key into `prefs.phone`
 **For Agent 05:** `src/night.js` and `app.css` changed → bump `sw.js` CACHE v9 → v10 (and `PREVIOUS_CACHE` in `tests/integration.test.js`). Not edited here.
 
 **Open:** none new. "Phone face-down. Goodnight." stays visible under the clock while the alarm rings (not in the hide list; harmless but could be swapped for a morning line).
+
+---
+## 2026-10-25 — Agent 03/04 (Fable 5.1): persist lights-out across refresh; hide goodnight line while ringing
+
+**Files changed:** `src/storage.js` (`normalizeWindDown` → `{ startedAt, stepIndex, lightsOut }`; `lightsOut` must be a finite positive number, anything else/missing → `null`), `src/night.js` (`wdRecord()` writes `lightsOut` at start and on every step change; `resumeWindDown` uses the stored `lightsOut` and only falls back to `lightsOutFor(startedAt)` for old blobs with `lightsOut: null`; `late` derived as `lightsOut <= startedAt`; header + timing-model comment updated), `app.css` (`#dark.waking #darkNote` added to the night block's hide list), `docs/ARCHITECTURE.md` (windDown line), `tests/storage.test.js` (+1 test: lightsOut round-trip, garbage → null; existing round-trip now expects `lightsOut: null`).
+
+**Commands run:** `node --check src/night.js src/storage.js` → OK. `node --test` → 77 pass / 0 fail. Served `python3 -m http.server 8436 --directory ~/Documents/MyMind` (stopped afterwards); built-in browser at 375×812 on the worktree path, seeded plan with bedtime 1 h ahead (23:35). Start wind-down → footer "Lights out at 23:35.", stored `windDown.lightsOut` = 23:35 epoch. To prove resume reads storage rather than recomputing, bumped the stored `lightsOut` to 23:50 and reloaded → footer "Lights out at 23:50." (a recompute would have shown 23:35). "Done, it's across the room" re-anchored `startedAt` but left `lightsOut` unchanged. `#darkNote` computed display: block → `none` with `#dark.waking` → block after removing it. localStorage cleared, viewport reset, server stopped.
+
+**For Agent 05:** `src/night.js`, `src/storage.js`, `app.css` changed → bump `sw.js` CACHE v10 → v11 (and `PREVIOUS_CACHE` in `tests/integration.test.js`). Not edited here.
+
+**Open:** none new.
